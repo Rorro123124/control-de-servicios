@@ -28,6 +28,7 @@ import { getOpenCount, startCount, updateCountItem, applyCount, cancelCount } fr
 import { createQuote, getQuotes, convertQuoteToSale } from "./quoteService";
 import { generateQuotePdf } from "./pdfService";
 import HelpWidget from "./HelpWidget";
+import ChatWidget from "./ChatWidget";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const COLORS = {
@@ -1950,6 +1951,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
         </div>
       )}
       <HelpWidget />
+      <ChatWidget businessId={businessId} businessName={businessName} />
     </div>
   );
 }
