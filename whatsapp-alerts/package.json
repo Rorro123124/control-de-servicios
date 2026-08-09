@@ -1,7 +1,7 @@
 {
   "name": "inventory-whatsapp-alerts",
-  "version": "2.0.0",
-  "description": "Worker que revisa el inventario de todos los negocios en Supabase y manda alertas por WhatsApp",
+  "version": "2.1.0",
+  "description": "Worker que revisa el inventario de todos los negocios en Supabase, manda alertas por Telegram, y responde el chat con IA del frontend",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
@@ -10,7 +10,9 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.45.4",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "express": "^4.21.1",
     "node-cron": "^3.0.3",
     "node-telegram-bot-api": "^1.2.0",
     "twilio": "^5.3.0"

@@ -1,0 +1,21 @@
+const WORKER_URL = import.meta.env.VITE_WORKER_URL;
+
+export async function preguntarAlAsistente(businessId, question) {
+  if (!WORKER_URL) {
+    throw new Error("Falta configurar VITE_WORKER_URL en el .env del frontend.");
+  }
+
+  const response = await fetch(WORKER_URL.replace(/\/$/, "") + "/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ businessId, question }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Error hablando con el asistente.");
+  }
+
+  return data.answer;
+}

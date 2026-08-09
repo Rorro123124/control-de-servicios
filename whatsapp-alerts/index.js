@@ -5,6 +5,7 @@ const { buildAlertMessage } = require("./alertEngine");
 const { createWhatsappSender } = require("./whatsappService");
 const { createAiService } = require("./aiService");
 const { startTelegramBot } = require("./telegramBot");
+const { createServer } = require("./server");
 const reportService = require("./reportService");
 
 async function main() {
@@ -91,7 +92,12 @@ async function main() {
     askAi: askAi,
     reportService: reportService,
   });
+
+  const app = createServer({ inventoryService, askAi });
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log("Servidor HTTP escuchando en el puerto " + port);
+  });
 }
 
 main().catch((err) => console.error("Error fatal:", err.message || err));
-
