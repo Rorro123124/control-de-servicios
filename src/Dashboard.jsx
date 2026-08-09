@@ -27,6 +27,7 @@ import { getVariants, addVariant, deleteVariant } from "./variantService";
 import { getOpenCount, startCount, updateCountItem, applyCount, cancelCount } from "./countService";
 import { createQuote, getQuotes, convertQuoteToSale } from "./quoteService";
 import { generateQuotePdf } from "./pdfService";
+import HelpWidget from "./HelpWidget";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const COLORS = {
@@ -1948,6 +1949,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </div>
         </div>
       )}
+      <HelpWidget />
     </div>
   );
 }
