@@ -18,4 +18,5 @@ module.exports = {
   defaultAlertTo: process.env.DEFAULT_ALERT_CHAT_ID || null,
   cronSchedule: process.env.CRON_SCHEDULE || "*/30 * * * *",
   reportSchedule: process.env.REPORT_SCHEDULE || "0 21 * * *",
+  customerBotBusinessId: process.env.CUSTOMER_BOT_BUSINESS_ID || null,
 };

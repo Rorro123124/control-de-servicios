@@ -19,6 +19,16 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     return data;
   }
 
+  async function getBusinessById(businessId) {
+    const { data, error } = await supabase
+      .from("businesses")
+      .select("id, name, alert_whatsapp_to")
+      .eq("id", businessId)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
   async function getProductsForBusiness(businessId) {
     const { data, error } = await supabase
       .from("products")
@@ -51,7 +61,13 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     return (data || []).filter((inv) => String(inv.created_at).slice(0, 10) === hoy);
   }
 
-  return { getBusinesses, getBusinessForChat, getProductsForBusiness, getInvoicesToday };
+  return {
+    getBusinesses,
+    getBusinessForChat,
+    getBusinessById,
+    getProductsForBusiness,
+    getInvoicesToday,
+  };
 }
 
 module.exports = { createInventoryService };

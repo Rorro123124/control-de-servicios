@@ -40,4 +40,14 @@ function buildContext(products) {
     .join("\n");
 }
 
-module.exports = { analizarProducto, buildContext };
+function buildCustomerContext(products) {
+  return products
+    .map((p) => {
+      const stock = Number(p.stock) || 0;
+      const disponibilidad = stock > 0 ? "disponible" : "agotado";
+      return "- " + p.name + ": $" + p.salePrice + " (" + disponibilidad + ")";
+    })
+    .join("\n");
+}
+
+module.exports = { analizarProducto, buildContext, buildCustomerContext };

@@ -5,6 +5,7 @@ const { buildAlertMessage } = require("./alertEngine");
 const { createWhatsappSender } = require("./whatsappService");
 const { createAiService } = require("./aiService");
 const { startTelegramBot } = require("./telegramBot");
+const { startCustomerWhatsappBot } = require("./whatsappCustomerBot");
 const { createServer } = require("./server");
 const reportService = require("./reportService");
 
@@ -92,6 +93,22 @@ async function main() {
     askAi: askAi,
     reportService: reportService,
   });
+
+  if (config.customerBotBusinessId) {
+    const business = await inventoryService.getBusinessById(config.customerBotBusinessId);
+    if (!business) {
+      console.log("CUSTOMER_BOT_BUSINESS_ID no coincide con ningun negocio, el bot de WhatsApp de clientes no arranca.");
+    } else {
+      startCustomerWhatsappBot({
+        businessId: business.id,
+        businessName: business.name,
+        inventoryService: inventoryService,
+        askAi: askAi,
+      });
+    }
+  } else {
+    console.log("CUSTOMER_BOT_BUSINESS_ID no configurado, el bot de WhatsApp de clientes no arranca todavia.");
+  }
 
   const app = createServer({ inventoryService, askAi });
   const port = process.env.PORT || 3000;
