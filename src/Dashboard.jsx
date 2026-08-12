@@ -30,6 +30,8 @@ import { generateQuotePdf } from "./pdfService";
 import HelpWidget from "./HelpWidget";
 import ChatWidget from "./ChatWidget";
 import GastosModal from "./GastosModal";
+import HistorialFacturasModal from "./HistorialFacturasModal";
+import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
@@ -220,6 +222,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [showFiado, setShowFiado] = useState(false);
   const [gastos, setGastos] = useState([]);
   const [showGastos, setShowGastos] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [showHistorial, setShowHistorial] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [debts, setDebts] = useState([]);
   const [customerForm, setCustomerForm] = useState(emptyCustomer);
@@ -253,10 +257,12 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const provs = await getSuppliers(businessId);
     const vends = await getSellers(businessId);
     const gastosData = await getExpenses(businessId);
+    const invoicesData = await getInvoices(businessId);
     setProducts(prods);
     setSuppliers(provs);
     setSellers(vends);
     setGastos(gastosData);
+    setInvoices(invoicesData);
     setCargando(false);
   };
 
@@ -1018,8 +1024,11 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           <button onClick={abrirFiado} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Fiado
           </button>
-          <button onClick={abrirCotizaciones} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+          <button onClick={abrirCotizaciones} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Cotizaciones
+          </button>
+          <button onClick={() => setShowHistorial(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+            Historial de facturas
           </button>
 
           <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Inventario</div>
@@ -2013,6 +2022,13 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           gastos={gastos}
           onClose={() => setShowGastos(false)}
           onChange={recargarGastos}
+        />
+      )}
+      {showHistorial && (
+        <HistorialFacturasModal
+          invoices={invoices}
+          onClose={() => setShowHistorial(false)}
+          onChange={cargar}
         />
       )}
     </div>

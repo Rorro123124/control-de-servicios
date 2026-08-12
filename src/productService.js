@@ -187,3 +187,35 @@ export async function registerSale(productId, qty, date = new Date().toISOString
   const newStock = Math.max(0, Number(product.stock) - qty);
   await supabase.from("products").update({ stock: newStock }).eq("id", productId);
 }
+
+export async function reverseSale(productId, qty, date, variantId = null) {
+  const { data: existing } = await supabase
+    .from("sales")
+    .select("id, qty")
+    .eq("product_id", productId)
+    .eq("sale_date", date)
+    .maybeSingle();
+
+  if (existing) {
+    const nuevaCantidad = Number(existing.qty) - qty;
+    if (nuevaCantidad <= 0) {
+      await supabase.from("sales").delete().eq("id", existing.id);
+    } else {
+      await supabase.from("sales").update({ qty: nuevaCantidad }).eq("id", existing.id);
+    }
+  }
+
+  if (variantId) {
+    const { data: variant } = await supabase.from("product_variants").select("stock").eq("id", variantId).single();
+    if (variant) {
+      const nuevoStock = Number(variant.stock) + qty;
+      await supabase.from("product_variants").update({ stock: nuevoStock }).eq("id", variantId);
+    }
+    return;
+  }
+
+  const { data: product } = await supabase.from("products").select("stock, item_type, has_variants").eq("id", productId).single();
+  if (!product || product.item_type === "servicio" || product.has_variants) return;
+  const newStock = Number(product.stock) + qty;
+  await supabase.from("products").update({ stock: newStock }).eq("id", productId);
+}

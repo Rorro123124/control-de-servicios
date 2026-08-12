@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { registerSale } from "./productService";
+import { registerSale, reverseSale } from "./productService";
 
 export async function createInvoice(businessId, items, buyer) {
   const itemsTotal = items.reduce((s, it) => s + Number(it.salePrice) * Number(it.qty), 0);
@@ -44,6 +44,7 @@ export async function createInvoice(businessId, items, buyer) {
     qty: Number(it.qty),
     unit_price: Number(it.salePrice),
     subtotal: Number(it.salePrice) * Number(it.qty),
+    variant_id: it.variantId || null,
   }));
 
   const { error: itemsError } = await supabase.from("invoice_items").insert(itemsToInsert);
@@ -64,4 +65,23 @@ export async function getInvoices(businessId) {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data;
+}
+
+export async function cancelInvoice(invoice) {
+  if (invoice.cancelled_at) {
+    throw new Error("Esta factura ya estaba anulada.");
+  }
+
+  const fecha = new Date(invoice.created_at).toISOString().slice(0, 10);
+  const items = invoice.invoice_items || [];
+
+  for (const item of items) {
+    await reverseSale(item.product_id, Number(item.qty), fecha, item.variant_id || null);
+  }
+
+  const { error } = await supabase
+    .from("invoices")
+    .update({ cancelled_at: new Date().toISOString() })
+    .eq("id", invoice.id);
+  if (error) throw error;
 }

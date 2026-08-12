@@ -288,6 +288,7 @@ export async function exportToExcel(businessId, businessName) {
     { header: "Telefono", key: "telefono", width: 16 },
     { header: "Entrega", key: "entrega", width: 14 },
     { header: "Total", key: "total", width: 16 },
+    { header: "Estado", key: "estado", width: 14 },
   ];
   estiloEncabezadoTabla(wsFacturas.getRow(1));
 
@@ -300,11 +301,17 @@ export async function exportToExcel(businessId, businessName) {
       telefono: inv.buyer_phone || "",
       entrega: inv.delivery_type === "domicilio" ? "Domicilio" : "En el lugar",
       total: inv.total,
+      estado: inv.cancelled_at ? "Anulada" : "Activa",
     });
     row.getCell(7).numFmt = '"$"#,##0';
     row.getCell(7).font = { bold: true };
+    if (inv.cancelled_at) {
+      const estadoCell = row.getCell(8);
+      estadoCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ROJO_BG } };
+      estadoCell.font = { color: { argb: ROJO }, bold: true };
+    }
   });
-  pintarFilasAlternas(wsFacturas, 2, wsFacturas.rowCount, 1, 7);
+  pintarFilasAlternas(wsFacturas, 2, wsFacturas.rowCount, 1, 8);
   wsFacturas.views = [{ state: "frozen", ySplit: 1 }];
 
   // --------- Hoja Detalle facturas ---------
