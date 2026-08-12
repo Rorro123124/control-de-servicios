@@ -31,6 +31,7 @@ import HelpWidget from "./HelpWidget";
 import ChatWidget from "./ChatWidget";
 import GastosModal from "./GastosModal";
 import HistorialFacturasModal from "./HistorialFacturasModal";
+import PuntosModal from "./PuntosModal";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -224,6 +225,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [showGastos, setShowGastos] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
+  const [showPuntos, setShowPuntos] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [debts, setDebts] = useState([]);
   const [customerForm, setCustomerForm] = useState(emptyCustomer);
@@ -778,6 +780,11 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     setShowFiado(true);
   };
 
+  const abrirPuntos = async () => {
+    await cargarFiado();
+    setShowPuntos(true);
+  };
+
   const guardarClienteFiado = async (e) => {
     e.preventDefault();
     await addCustomer(businessId, customerForm);
@@ -1023,6 +1030,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </button>
           <button onClick={abrirFiado} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Fiado
+          </button>
+          <button onClick={abrirPuntos} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
+            Puntos
           </button>
           <button onClick={abrirCotizaciones} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Cotizaciones
@@ -2029,6 +2039,13 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           invoices={invoices}
           onClose={() => setShowHistorial(false)}
           onChange={cargar}
+        />
+      )}
+      {showPuntos && (
+        <PuntosModal
+          customers={customers}
+          onClose={() => setShowPuntos(false)}
+          onChange={cargarFiado}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 const TelegramBotLib = require("node-telegram-bot-api");
 const TelegramBot = TelegramBotLib.default || TelegramBotLib;
-const { buildContext } = require("./contextBuilder");
+const { buildContext, buildFinanceContext } = require("./contextBuilder");
 
 const PALABRAS_REPORTE = ["resumen", "reporte", "cuanto vendi", "cuanto vendimos", "cuantas ventas", "que vendi", "que vendimos", "quien compro", "quienes compraron", "compradores"];
 
@@ -51,12 +51,13 @@ function startTelegramBot(options) {
       }
 
       const products = await inventoryService.getProductsForBusiness(business.id);
-      const contexto = buildContext(products);
+      const expenses = await inventoryService.getExpensesForBusiness(business.id);
+      const contexto = buildContext(products) + buildFinanceContext(products, expenses);
 
       const prompt =
         "Eres un asistente para el dueno de la tienda '" + business.name + "'. " +
         "Responde en espanol, de forma breve, clara y directa, como si le hablaras a un tendero, sin tecnicismos. " +
-        "Usa SOLO esta informacion del inventario para responder, no inventes datos. El campo VENDIDAS HOY es el numero real de unidades vendidas hoy de cada producto, usalo para responder preguntas sobre ventas de hoy en vez de adivinar a partir del stock:\n\n" +
+        "Usa SOLO esta informacion del inventario y las finanzas para responder, no inventes datos. El campo VENDIDAS HOY es el numero real de unidades vendidas hoy de cada producto, usalo para responder preguntas sobre ventas de hoy en vez de adivinar a partir del stock. Si preguntan por gastos, ganancia neta, o rentabilidad del negocio, usa los DATOS FINANCIEROS incluidos abajo:\n\n" +
         contexto +
         "\n\nPregunta del tendero: " + text;
 

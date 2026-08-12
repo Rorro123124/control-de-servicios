@@ -432,6 +432,25 @@ export async function exportToExcel(businessId, businessName) {
     totalRowGastos.getCell(4).numFmt = '"$"#,##0';
   }
 
+  // --------- Hoja Puntos ---------
+  const wsPuntos = workbook.addWorksheet("Puntos", { properties: { tabColor: { argb: MOSTAZA } } });
+  wsPuntos.columns = [
+    { header: "Cliente", key: "cliente", width: 26 },
+    { header: "Telefono", key: "telefono", width: 16 },
+    { header: "Puntos acumulados", key: "puntos", width: 18 },
+  ];
+  estiloEncabezadoTabla(wsPuntos.getRow(1));
+
+  customers.forEach((c) => {
+    wsPuntos.addRow({
+      cliente: ((c.name || "") + " " + (c.lastname || "")).trim(),
+      telefono: c.phone || "",
+      puntos: Number(c.points || 0),
+    });
+  });
+  pintarFilasAlternas(wsPuntos, 2, wsPuntos.rowCount, 1, 3);
+  wsPuntos.views = [{ state: "frozen", ySplit: 1 }];
+
   // --------- Descargar ---------
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });

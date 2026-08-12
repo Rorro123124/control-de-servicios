@@ -58,7 +58,23 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
       .limit(50);
     if (error) throw error;
 
-    return (data || []).filter((inv) => String(inv.created_at).slice(0, 10) === hoy);
+    return (data || []).filter((inv) => String(inv.created_at).slice(0, 10) === hoy && !inv.cancelled_at);
+  }
+
+  async function getExpensesForBusiness(businessId) {
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("*")
+      .eq("business_id", businessId)
+      .order("expense_date", { ascending: false });
+    if (error) throw error;
+
+    return (data || []).map((g) => ({
+      description: g.description,
+      amount: Number(g.amount),
+      category: g.category || "",
+      expenseDate: g.expense_date,
+    }));
   }
 
   return {
@@ -67,6 +83,7 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     getBusinessById,
     getProductsForBusiness,
     getInvoicesToday,
+    getExpensesForBusiness,
   };
 }
 

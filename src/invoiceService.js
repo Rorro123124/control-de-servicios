@@ -1,5 +1,7 @@
 import { supabase } from "./supabaseClient";
 import { registerSale, reverseSale } from "./productService";
+import { findOrCreateCustomer } from "./debtService";
+import { calcularPuntosGanados, agregarPuntos } from "./loyaltyService";
 
 export async function createInvoice(businessId, items, buyer) {
   const itemsTotal = items.reduce((s, it) => s + Number(it.salePrice) * Number(it.qty), 0);
@@ -52,6 +54,17 @@ export async function createInvoice(businessId, items, buyer) {
 
   for (const it of items) {
     await registerSale(it.productId, Number(it.qty), new Date().toISOString().slice(0, 10), it.variantId || null);
+  }
+
+  if ((buyer.name || "").trim()) {
+    try {
+      const customer = await findOrCreateCustomer(businessId, buyer.name, buyer.lastname, buyer.idNumber, buyer.phone);
+      await supabase.from("invoices").update({ customer_id: customer.id }).eq("id", invoice.id);
+      const puntosGanados = calcularPuntosGanados(total);
+      await agregarPuntos(customer.id, puntosGanados);
+    } catch (err) {
+      console.error("No se pudo asociar puntos de fidelizacion a esta factura:", err.message || err);
+    }
   }
 
   return invoice;

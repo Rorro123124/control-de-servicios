@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { buildContext } = require("./contextBuilder");
+const { buildContext, buildFinanceContext } = require("./contextBuilder");
 const { getLatestQrImage, getConnectionStatus } = require("./whatsappCustomerBot");
 
 function createServer({ inventoryService, askAi }) {
@@ -57,12 +57,13 @@ function createServer({ inventoryService, askAi }) {
 
     try {
       const products = await inventoryService.getProductsForBusiness(businessId);
-      const contexto = buildContext(products);
+      const expenses = await inventoryService.getExpensesForBusiness(businessId);
+      const contexto = buildContext(products) + buildFinanceContext(products, expenses);
 
       const prompt =
         "Eres un asistente para el dueno de una tienda pequena en Colombia. " +
         "Responde en espanol, de forma breve, clara y directa, como si le hablaras a un tendero, sin tecnicismos. " +
-        "Usa SOLO esta informacion del inventario para responder, no inventes datos. El campo VENDIDAS HOY es el numero real de unidades vendidas hoy de cada producto:\n\n" +
+        "Usa SOLO esta informacion del inventario y las finanzas para responder, no inventes datos. El campo VENDIDAS HOY es el numero real de unidades vendidas hoy de cada producto. Si preguntan por gastos, ganancia neta, o rentabilidad, usa los DATOS FINANCIEROS incluidos abajo:\n\n" +
         contexto +
         "\n\nPregunta del tendero: " + question;
 
