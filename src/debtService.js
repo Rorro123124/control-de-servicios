@@ -27,6 +27,18 @@ export async function findOrCreateCustomer(businessId, name, lastname, idNumber,
   const nombreCompleto = (name || "").trim();
   if (!nombreCompleto) throw new Error("Falta el nombre del cliente para fiar.");
 
+  const idLimpio = (idNumber || "").trim();
+
+  if (idLimpio) {
+    const { data: porCedula } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("id_number", idLimpio)
+      .limit(1);
+    if (porCedula && porCedula.length > 0) return porCedula[0];
+  }
+
   const { data: existentes } = await supabase
     .from("customers")
     .select("*")
