@@ -29,6 +29,8 @@ import { createQuote, getQuotes, convertQuoteToSale } from "./quoteService";
 import { generateQuotePdf } from "./pdfService";
 import HelpWidget from "./HelpWidget";
 import ChatWidget from "./ChatWidget";
+import GastosModal from "./GastosModal";
+import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const COLORS = {
@@ -216,6 +218,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [countedAmount, setCountedAmount] = useState("");
   const [cargandoCaja, setCargandoCaja] = useState(false);
   const [showFiado, setShowFiado] = useState(false);
+  const [gastos, setGastos] = useState([]);
+  const [showGastos, setShowGastos] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [debts, setDebts] = useState([]);
   const [customerForm, setCustomerForm] = useState(emptyCustomer);
@@ -248,10 +252,17 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const prods = await getProducts(businessId);
     const provs = await getSuppliers(businessId);
     const vends = await getSellers(businessId);
+    const gastosData = await getExpenses(businessId);
     setProducts(prods);
     setSuppliers(provs);
     setSellers(vends);
+    setGastos(gastosData);
     setCargando(false);
+  };
+
+  const recargarGastos = async () => {
+    const gastosData = await getExpenses(businessId);
+    setGastos(gastosData);
   };
 
   useEffect(() => { cargar(); }, [businessId]);
@@ -328,6 +339,26 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const ganancia = Math.max(0, ingresos - costo);
     return { ingresos, costo, ganancia };
   }, [products]);
+
+  const gananciaNetaMes = useMemo(() => {
+    const mesActual = new Date().toISOString().slice(0, 7);
+    let ingresos = 0;
+    let costo = 0;
+    products.forEach((p) => {
+      (p.salesHistory || []).forEach((h) => {
+        if (h.date.slice(0, 7) === mesActual) {
+          ingresos += h.qty * Number(p.salePrice || 0);
+          costo += h.qty * Number(p.realCost || 0);
+        }
+      });
+    });
+    const gananciaBruta = ingresos - costo;
+    const totalGastos = gastos
+      .filter((g) => g.expense_date.slice(0, 7) === mesActual)
+      .reduce((s, g) => s + Number(g.amount), 0);
+    const neta = gananciaBruta - totalGastos;
+    return { ingresos, costo, gananciaBruta, totalGastos, neta };
+  }, [products, gastos]);
 
   const flujoCaja = useMemo(() => {
     const dias = ultimosDias(14);
@@ -1015,6 +1046,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
               <button onClick={abrirPerfilNegocio} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
                 Datos negocio
               </button>
+              <button onClick={() => setShowGastos(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
+                Gastos
+              </button>
               <button onClick={exportarExcel} disabled={exportando} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
                 {exportando ? "Exportando..." : "Exportar Excel"}
               </button>
@@ -1089,6 +1123,27 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
                   <div>Ingresos: <strong>{formatCOP(gananciaHoy.ingresos)}</strong></div>
                   <div style={{ color: COLORS.urgente }}>Costo: <strong>{formatCOP(gananciaHoy.costo)}</strong></div>
                   <div style={{ color: COLORS.marcaClaro }}>Ganancia: <strong>{formatCOP(gananciaHoy.ganancia)}</strong></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {esAdmin && (
+            <div style={panelStyle}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <div style={sectionTitleStyle}>Ganancia neta del mes</div>
+                <button
+                  onClick={() => setShowGastos(true)}
+                  style={{ background: "transparent", border: "1px solid " + COLORS.borde, borderRadius: 7, padding: "4px 10px", fontSize: 12, color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY }}
+                >
+                  Ver gastos
+                </button>
+              </div>
+              <div style={{ fontSize: 13, fontFamily: FONT_MONO, lineHeight: 2 }}>
+                <div>Ganancia bruta: <strong>{formatCOP(gananciaNetaMes.gananciaBruta)}</strong></div>
+                <div style={{ color: COLORS.urgente }}>Gastos del mes: <strong>{formatCOP(gananciaNetaMes.totalGastos)}</strong></div>
+                <div style={{ color: gananciaNetaMes.neta >= 0 ? COLORS.marcaClaro : COLORS.urgente, fontSize: 16 }}>
+                  Ganancia neta: <strong>{formatCOP(gananciaNetaMes.neta)}</strong>
                 </div>
               </div>
             </div>
@@ -1952,6 +2007,14 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       <HelpWidget />
       <ChatWidget businessId={businessId} businessName={businessName} />
+      {showGastos && (
+        <GastosModal
+          businessId={businessId}
+          gastos={gastos}
+          onClose={() => setShowGastos(false)}
+          onChange={recargarGastos}
+        />
+      )}
     </div>
   );
 }

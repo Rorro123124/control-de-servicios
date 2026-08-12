@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { getProducts } from "./productService";
 import { getInvoices } from "./invoiceService";
 import { getCustomers, getDebts } from "./debtService";
+import { getExpenses } from "./expenseService";
 
 const VERDE = "FF154B3E";
 const VERDE_CLARO = "FF1F6F5C";
@@ -95,6 +96,7 @@ export async function exportToExcel(businessId, businessName) {
   const invoices = await getInvoices(businessId);
   const customers = await getCustomers(businessId);
   const debts = await getDebts(businessId);
+  const expenses = await getExpenses(businessId);
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = businessName || "Control de Servicios";
@@ -116,6 +118,8 @@ export async function exportToExcel(businessId, businessName) {
   const totalGanancia = totalIngresos - totalCosto;
   const valorInventario = products.reduce((s, p) => s + Number(p.stock) * Number(p.salePrice || 0), 0);
   const totalPorCobrar = debts.reduce((s, d) => s + Number(d.balance), 0);
+  const totalGastos = expenses.reduce((s, g) => s + Number(g.amount), 0);
+  const gananciaNetaReal = totalGanancia - totalGastos;
 
   const dias14 = ultimosDias(14);
   const totalesPorDia = dias14.map((fecha) => ventasData.filter((v) => v.fecha === fecha).reduce((s, v) => s + v.ingreso, 0));
@@ -144,6 +148,8 @@ export async function exportToExcel(businessId, businessName) {
     { label: "Productos", valor: String(products.length), color: VERDE_CLARO },
     { label: "Facturas emitidas", valor: String(invoices.length), color: MOSTAZA },
     { label: "Total por cobrar (fiado)", valor: formatCOP(totalPorCobrar), color: ROJO },
+    { label: "Gastos totales", valor: formatCOP(totalGastos), color: ROJO },
+    { label: "Ganancia neta real", valor: formatCOP(gananciaNetaReal), color: gananciaNetaReal >= 0 ? VERDE_CLARO : ROJO },
   ];
 
   let filaKpi = 4;
@@ -386,6 +392,37 @@ export async function exportToExcel(businessId, businessName) {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ROJO_BG } };
     });
     totalRow.getCell(9).numFmt = '"$"#,##0';
+  }
+
+  // --------- Hoja Gastos ---------
+  const wsGastos = workbook.addWorksheet("Gastos", { properties: { tabColor: { argb: ROJO } } });
+  wsGastos.columns = [
+    { header: "Fecha", key: "fecha", width: 16 },
+    { header: "Descripcion", key: "descripcion", width: 32 },
+    { header: "Categoria", key: "categoria", width: 18 },
+    { header: "Monto", key: "monto", width: 16 },
+  ];
+  estiloEncabezadoTabla(wsGastos.getRow(1));
+
+  expenses.forEach((g) => {
+    const row = wsGastos.addRow({
+      fecha: g.expense_date,
+      descripcion: g.description,
+      categoria: g.category || "Sin categoria",
+      monto: Number(g.amount),
+    });
+    row.getCell(4).numFmt = '"$"#,##0';
+  });
+  pintarFilasAlternas(wsGastos, 2, wsGastos.rowCount, 1, 4);
+  wsGastos.views = [{ state: "frozen", ySplit: 1 }];
+
+  if (expenses.length > 0) {
+    const totalRowGastos = wsGastos.addRow({ descripcion: "TOTAL GASTOS", monto: totalGastos });
+    totalRowGastos.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ROJO_BG } };
+    });
+    totalRowGastos.getCell(4).numFmt = '"$"#,##0';
   }
 
   // --------- Descargar ---------
