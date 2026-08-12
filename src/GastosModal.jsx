@@ -19,6 +19,13 @@ const CATEGORIAS = ["Arriendo", "Servicios", "Nomina", "Transporte", "Otro"];
 function formatCOP(n) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n || 0);
 }
+function formatMiles(value) {
+  if (value === "" || value == null) return "";
+  return Number(value).toLocaleString("es-CO");
+}
+function soloDigitos(texto) {
+  return texto.replace(/\D/g, "");
+}
 
 export default function GastosModal({ businessId, gastos, onClose, onChange }) {
   const [descripcion, setDescripcion] = useState("");
@@ -77,10 +84,9 @@ export default function GastosModal({ businessId, gastos, onClose, onChange }) {
             style={{ flex: "1 1 220px", padding: "9px 11px", borderRadius: 8, border: "1px solid " + COLORS.borde, fontSize: 13.5, fontFamily: FONT_BODY }}
           />
           <input
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-            type="number"
-            min="0"
+            value={formatMiles(monto)}
+            onChange={(e) => setMonto(soloDigitos(e.target.value))}
+            inputMode="numeric"
             placeholder="Monto"
             style={{ width: 130, padding: "9px 11px", borderRadius: 8, border: "1px solid " + COLORS.borde, fontSize: 13.5, fontFamily: FONT_BODY }}
           />
