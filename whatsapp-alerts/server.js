@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { buildContext } = require("./contextBuilder");
+const { getLatestQrImage, getConnectionStatus } = require("./whatsappCustomerBot");
 
 function createServer({ inventoryService, askAi }) {
   const app = express();
@@ -9,6 +10,40 @@ function createServer({ inventoryService, askAi }) {
 
   app.get("/", (req, res) => {
     res.send("Worker de Control de Servicios activo.");
+  });
+
+  app.get("/qr-clientes", (req, res) => {
+    const estado = getConnectionStatus();
+    const imagen = getLatestQrImage();
+
+    if (estado === "conectado") {
+      res.send(
+        "<html><body style='font-family: sans-serif; text-align: center; padding-top: 60px;'>" +
+          "<h2>El bot de WhatsApp para clientes ya esta conectado.</h2>" +
+          "<p>No necesitas escanear nada.</p>" +
+          "</body></html>"
+      );
+      return;
+    }
+
+    if (!imagen) {
+      res.send(
+        "<html><head><meta http-equiv='refresh' content='3'></head><body style='font-family: sans-serif; text-align: center; padding-top: 60px;'>" +
+          "<h2>Generando el codigo QR...</h2>" +
+          "<p>Esta pagina se refresca sola cada 3 segundos.</p>" +
+          "</body></html>"
+      );
+      return;
+    }
+
+    res.send(
+      "<html><head><meta http-equiv='refresh' content='5'></head><body style='font-family: sans-serif; text-align: center; padding-top: 40px;'>" +
+        "<h2>Escanea este QR con el WhatsApp de clientes</h2>" +
+        "<p>WhatsApp &gt; Configuracion &gt; Dispositivos vinculados &gt; Vincular un dispositivo</p>" +
+        "<img src='" + imagen + "' style='width: 300px; height: 300px;' />" +
+        "<p>Esta pagina se refresca sola cada 5 segundos.</p>" +
+        "</body></html>"
+    );
   });
 
   app.post("/chat", async (req, res) => {

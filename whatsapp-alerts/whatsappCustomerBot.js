@@ -1,9 +1,21 @@
 const path = require("path");
 const qrcode = require("qrcode-terminal");
+const QRCode = require("qrcode");
 const { Boom } = require("@hapi/boom");
 const pino = require("pino");
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require("@whiskeysockets/baileys");
 const { buildCustomerContext } = require("./contextBuilder");
+
+let latestQrImage = null;
+let connectionStatus = "esperando";
+
+function getLatestQrImage() {
+  return latestQrImage;
+}
+
+function getConnectionStatus() {
+  return connectionStatus;
+}
 
 async function startCustomerWhatsappBot(options) {
   const businessId = options.businessId;
@@ -21,19 +33,26 @@ async function startCustomerWhatsappBot(options) {
 
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", (update) => {
+  sock.ev.on("connection.update", async (update) => {
     const connection = update.connection;
     const qr = update.qr;
     const lastDisconnect = update.lastDisconnect;
 
     if (qr) {
+      connectionStatus = "esperando_escaneo";
+      try {
+        latestQrImage = await QRCode.toDataURL(qr);
+      } catch (err) {
+        console.error("Error generando imagen del QR:", err.message || err);
+      }
       console.log("");
-      console.log("Escanea este QR con el WhatsApp que va a atender clientes:");
+      console.log("QR nuevo generado. Abre /qr-clientes en el worker para escanearlo desde el navegador.");
       qrcode.generate(qr, { small: true });
       console.log("");
     }
 
     if (connection === "close") {
+      connectionStatus = "desconectado";
       const statusCode =
         lastDisconnect && lastDisconnect.error ? new Boom(lastDisconnect.error).output.statusCode : null;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
@@ -42,6 +61,8 @@ async function startCustomerWhatsappBot(options) {
         startCustomerWhatsappBot(options);
       }
     } else if (connection === "open") {
+      connectionStatus = "conectado";
+      latestQrImage = null;
       console.log("Bot de WhatsApp para clientes conectado y listo.");
     }
   });
@@ -83,4 +104,4 @@ async function startCustomerWhatsappBot(options) {
   return sock;
 }
 
-module.exports = { startCustomerWhatsappBot };
+module.exports = { startCustomerWhatsappBot, getLatestQrImage, getConnectionStatus };
