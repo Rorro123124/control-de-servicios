@@ -179,6 +179,8 @@ function btnDanger(extra) {
 }
 
 export default function Dashboard({ businessId, businessName, businesses, onSwitchBusiness, onBusinessesChange }) {
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 860);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [sellers, setSellers] = useState([]);
@@ -274,6 +276,14 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   };
 
   useEffect(() => { cargar(); }, [businessId]);
+
+  useEffect(() => {
+    function onResize() {
+      setIsMobile(window.innerWidth < 860);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     if (!currentBusiness.id) return;
@@ -948,6 +958,17 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       <div style={{ background: COLORS.marca, color: "white" }}>
         <div style={{ padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {isMobile && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Abrir menu"
+                style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 4, width: 30, height: 30, border: "1px solid rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.08)", borderRadius: 7, cursor: "pointer", marginRight: 2 }}
+              >
+                <span style={{ display: "block", width: 14, height: 2, background: "white", margin: "0 auto" }} />
+                <span style={{ display: "block", width: 14, height: 2, background: "white", margin: "0 auto" }} />
+                <span style={{ display: "block", width: 14, height: 2, background: "white", margin: "0 auto" }} />
+              </button>
+            )}
             <span style={{ fontFamily: FONT_DISPLAY, fontSize: 18, fontWeight: 600 }}>Control de Servicios</span>
             <span style={{ opacity: 0.5 }}>/</span>
             <select
@@ -1012,7 +1033,21 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       </div>
 
       <div style={{ display: "flex", alignItems: "flex-start" }}>
-        <aside style={{ width: 220, minWidth: 220, background: "white", borderRight: "1px solid " + COLORS.borde, minHeight: "calc(100vh - 57px)", padding: "18px 12px", position: "sticky", top: 0 }}>
+        {isMobile && sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", zIndex: 50 }}
+          />
+        )}
+        {(!isMobile || sidebarOpen) && (
+        <aside
+          onClick={() => { if (isMobile) setSidebarOpen(false); }}
+          style={
+            isMobile
+              ? { width: 260, minWidth: 260, background: "white", minHeight: "100vh", padding: "18px 12px", position: "fixed", top: 0, left: 0, bottom: 0, overflowY: "auto", zIndex: 51, boxShadow: "8px 0 24px -8px rgba(0,0,0,0.25)" }
+              : { width: 220, minWidth: 220, background: "white", borderRight: "1px solid " + COLORS.borde, minHeight: "calc(100vh - 57px)", padding: "18px 12px", position: "sticky", top: 0 }
+          }
+        >
           <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Vista</div>
           <button onClick={() => setVistaActiva("inicio")} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: vistaActiva === "inicio" ? COLORS.bienBg : "transparent", color: vistaActiva === "inicio" ? COLORS.marcaClaro : COLORS.texto, fontWeight: vistaActiva === "inicio" ? 700 : 500, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 2 }}>
             Inicio
@@ -1077,8 +1112,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
             </>
           )}
         </aside>
+        )}
 
-        <main style={{ flex: 1, minWidth: 0, padding: "24px", maxWidth: 1460 }}>
+        <main style={{ flex: 1, minWidth: 0, padding: isMobile ? "14px" : "24px", maxWidth: 1460 }}>
         {vistaActiva === "inicio" && (
           <>
         {resumen.total > 0 && (
