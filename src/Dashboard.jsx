@@ -35,6 +35,8 @@ import PuntosModal from "./PuntosModal";
 import QuickSearch from "./QuickSearch";
 import PurchaseOrdersModal from "./PurchaseOrdersModal";
 import { getPurchaseOrders } from "./purchaseOrderService";
+import MermasModal from "./MermasModal";
+import { getWasteRecords } from "./wasteService";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -236,6 +238,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [showGastos, setShowGastos] = useState(false);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [showPurchaseOrders, setShowPurchaseOrders] = useState(false);
+  const [mermas, setMermas] = useState([]);
+  const [showMermas, setShowMermas] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
   const [showPuntos, setShowPuntos] = useState(false);
@@ -276,6 +280,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const invoicesData = await getInvoices(businessId);
     const customersData = await getCustomers(businessId);
     const ordersData = await getPurchaseOrders(businessId);
+    const mermasData = await getWasteRecords(businessId);
     setProducts(prods);
     setSuppliers(provs);
     setSellers(vends);
@@ -283,6 +288,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     setInvoices(invoicesData);
     setCustomers(customersData);
     setPurchaseOrders(ordersData);
+    setMermas(mermasData);
     setCargando(false);
   };
 
@@ -997,6 +1003,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       { label: "Conteo fisico", run: abrirConteo },
       { label: "Proveedores", run: () => setShowSuppliers(true) },
       { label: "Ordenes de compra", run: () => setShowPurchaseOrders(true) },
+      { label: "Mermas", run: () => setShowMermas(true) },
       { label: "Gastos", run: () => setShowGastos(true) },
       { label: "Datos negocio", run: abrirPerfilNegocio },
       { label: "Exportar Excel", run: exportarExcel },
@@ -1156,6 +1163,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </button>
           <button onClick={() => setShowPurchaseOrders(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Ordenes de compra
+          </button>
+          <button onClick={() => setShowMermas(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
+            Mermas
           </button>
           <button
             onClick={() => {
@@ -2174,6 +2184,15 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           suppliers={suppliers}
           products={products}
           onClose={() => setShowPurchaseOrders(false)}
+          onChange={cargar}
+        />
+      )}
+      {showMermas && (
+        <MermasModal
+          businessId={businessId}
+          products={products}
+          mermas={mermas}
+          onClose={() => setShowMermas(false)}
           onChange={cargar}
         />
       )}

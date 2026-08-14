@@ -2,6 +2,7 @@ import { getProducts } from "./productService";
 import { getInvoices } from "./invoiceService";
 import { getCustomers, getDebts } from "./debtService";
 import { getExpenses } from "./expenseService";
+import { getWasteRecords } from "./wasteService";
 
 const VERDE = "FF154B3E";
 const VERDE_CLARO = "FF1F6F5C";
@@ -97,6 +98,7 @@ export async function exportToExcel(businessId, businessName) {
   const customers = await getCustomers(businessId);
   const debts = await getDebts(businessId);
   const expenses = await getExpenses(businessId);
+  const wasteRecords = await getWasteRecords(businessId);
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = businessName || "Control de Servicios";
@@ -450,6 +452,29 @@ export async function exportToExcel(businessId, businessName) {
   });
   pintarFilasAlternas(wsPuntos, 2, wsPuntos.rowCount, 1, 3);
   wsPuntos.views = [{ state: "frozen", ySplit: 1 }];
+
+  // --------- Hoja Mermas ---------
+  const wsMermas = workbook.addWorksheet("Mermas", { properties: { tabColor: { argb: ROJO } } });
+  wsMermas.columns = [
+    { header: "Fecha", key: "fecha", width: 16 },
+    { header: "Producto", key: "producto", width: 28 },
+    { header: "Cantidad", key: "cantidad", width: 12 },
+    { header: "Motivo", key: "motivo", width: 16 },
+    { header: "Nota", key: "nota", width: 26 },
+  ];
+  estiloEncabezadoTabla(wsMermas.getRow(1));
+
+  wasteRecords.forEach((m) => {
+    wsMermas.addRow({
+      fecha: m.waste_date,
+      producto: m.product_name,
+      cantidad: Number(m.qty),
+      motivo: m.reason,
+      nota: m.notes || "",
+    });
+  });
+  pintarFilasAlternas(wsMermas, 2, wsMermas.rowCount, 1, 5);
+  wsMermas.views = [{ state: "frozen", ySplit: 1 }];
 
   // --------- Descargar ---------
   const buffer = await workbook.xlsx.writeBuffer();
