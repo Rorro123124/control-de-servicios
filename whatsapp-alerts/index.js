@@ -1,3 +1,10 @@
+process.on("unhandledRejection", (err) => {
+  console.error("Error no atrapado (unhandledRejection), el worker sigue corriendo:", err && err.message ? err.message : err);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Error no atrapado (uncaughtException), el worker sigue corriendo:", err && err.message ? err.message : err);
+});
+
 const cron = require("node-cron");
 const config = require("./config");
 const { createInventoryService } = require("./inventoryService");
@@ -87,24 +94,34 @@ async function main() {
   cron.schedule(config.cronSchedule, checkAllBusinesses);
   cron.schedule(config.reportSchedule, sendDailyReports);
 
-  startTelegramBot({
-    token: config.telegramToken,
-    inventoryService: inventoryService,
-    askAi: askAi,
-    reportService: reportService,
-  });
+  try {
+    startTelegramBot({
+      token: config.telegramToken,
+      inventoryService: inventoryService,
+      askAi: askAi,
+      reportService: reportService,
+    });
+  } catch (err) {
+    console.error("El bot de Telegram no pudo arrancar, pero el resto del worker sigue funcionando:", err.message || err);
+  }
 
   if (config.customerBotBusinessId) {
-    const business = await inventoryService.getBusinessById(config.customerBotBusinessId);
-    if (!business) {
-      console.log("CUSTOMER_BOT_BUSINESS_ID no coincide con ningun negocio, el bot de WhatsApp de clientes no arranca.");
-    } else {
-      startCustomerWhatsappBot({
-        businessId: business.id,
-        businessName: business.name,
-        inventoryService: inventoryService,
-        askAi: askAi,
-      });
+    try {
+      const business = await inventoryService.getBusinessById(config.customerBotBusinessId);
+      if (!business) {
+        console.log("CUSTOMER_BOT_BUSINESS_ID no coincide con ningun negocio, el bot de WhatsApp de clientes no arranca.");
+      } else {
+        startCustomerWhatsappBot({
+          businessId: business.id,
+          businessName: business.name,
+          inventoryService: inventoryService,
+          askAi: askAi,
+        }).catch((err) => {
+          console.error("El bot de WhatsApp de clientes fallo al conectar, pero el resto del worker sigue funcionando:", err.message || err);
+        });
+      }
+    } catch (err) {
+      console.error("Error preparando el bot de WhatsApp de clientes:", err.message || err);
     }
   } else {
     console.log("CUSTOMER_BOT_BUSINESS_ID no configurado, el bot de WhatsApp de clientes no arranca todavia.");

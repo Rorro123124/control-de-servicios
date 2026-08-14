@@ -58,7 +58,9 @@ async function startCustomerWhatsappBot(options) {
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
       console.log("Bot de WhatsApp (clientes) desconectado. Reconectando: " + shouldReconnect);
       if (shouldReconnect) {
-        startCustomerWhatsappBot(options);
+        startCustomerWhatsappBot(options).catch((err) => {
+          console.error("Error reconectando el bot de WhatsApp de clientes:", err.message || err);
+        });
       }
     } else if (connection === "open") {
       connectionStatus = "conectado";
