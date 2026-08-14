@@ -33,6 +33,8 @@ import GastosModal from "./GastosModal";
 import HistorialFacturasModal from "./HistorialFacturasModal";
 import PuntosModal from "./PuntosModal";
 import QuickSearch from "./QuickSearch";
+import PurchaseOrdersModal from "./PurchaseOrdersModal";
+import { getPurchaseOrders } from "./purchaseOrderService";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -232,6 +234,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [showFiado, setShowFiado] = useState(false);
   const [gastos, setGastos] = useState([]);
   const [showGastos, setShowGastos] = useState(false);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [showPurchaseOrders, setShowPurchaseOrders] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
   const [showPuntos, setShowPuntos] = useState(false);
@@ -271,12 +275,14 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const gastosData = await getExpenses(businessId);
     const invoicesData = await getInvoices(businessId);
     const customersData = await getCustomers(businessId);
+    const ordersData = await getPurchaseOrders(businessId);
     setProducts(prods);
     setSuppliers(provs);
     setSellers(vends);
     setGastos(gastosData);
     setInvoices(invoicesData);
     setCustomers(customersData);
+    setPurchaseOrders(ordersData);
     setCargando(false);
   };
 
@@ -990,6 +996,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       { label: "Historial de facturas", run: () => setShowHistorial(true) },
       { label: "Conteo fisico", run: abrirConteo },
       { label: "Proveedores", run: () => setShowSuppliers(true) },
+      { label: "Ordenes de compra", run: () => setShowPurchaseOrders(true) },
       { label: "Gastos", run: () => setShowGastos(true) },
       { label: "Datos negocio", run: abrirPerfilNegocio },
       { label: "Exportar Excel", run: exportarExcel },
@@ -1146,6 +1153,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </button>
           <button onClick={() => setShowSuppliers(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Proveedores
+          </button>
+          <button onClick={() => setShowPurchaseOrders(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
+            Ordenes de compra
           </button>
           <button
             onClick={() => {
@@ -2155,6 +2165,16 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           customers={customers}
           actions={quickSearchActions}
           onClose={() => setShowQuickSearch(false)}
+        />
+      )}
+      {showPurchaseOrders && (
+        <PurchaseOrdersModal
+          businessId={businessId}
+          orders={purchaseOrders}
+          suppliers={suppliers}
+          products={products}
+          onClose={() => setShowPurchaseOrders(false)}
+          onChange={cargar}
         />
       )}
     </div>
