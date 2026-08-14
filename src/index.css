@@ -109,6 +109,42 @@ code {
   background: var(--code-bg);
 }
 
+/* ---- Control de Servicios: paleta con soporte de modo oscuro ---- */
+
+:root {
+  --cs-urgente: #D6483C;
+  --cs-urgente-bg: #FBE8E5;
+  --cs-atencion: #C98A1F;
+  --cs-atencion-bg: #FAF0DC;
+  --cs-bien: #2F7A56;
+  --cs-bien-bg: #E4F1EA;
+  --cs-fondo: #F5F3EE;
+  --cs-panel: #FFFFFF;
+  --cs-borde: #E4DFD3;
+  --cs-texto: #211D17;
+  --cs-texto-suave: #736C5E;
+  --cs-marca: #154B3E;
+  --cs-marca-claro: #1F6F5C;
+  --cs-acento: #E5A13C;
+}
+
+[data-cs-theme="dark"] {
+  --cs-urgente: #E5695D;
+  --cs-urgente-bg: rgba(214, 72, 60, 0.18);
+  --cs-atencion: #E0A94B;
+  --cs-atencion-bg: rgba(201, 138, 31, 0.18);
+  --cs-bien: #4FAE84;
+  --cs-bien-bg: rgba(47, 122, 86, 0.2);
+  --cs-fondo: #17181A;
+  --cs-panel: #232421;
+  --cs-borde: #37372F;
+  --cs-texto: #F1EEE6;
+  --cs-texto-suave: #A79E8C;
+  --cs-marca: #1B5A4A;
+  --cs-marca-claro: #2C8A70;
+  --cs-acento: #E5A13C;
+}
+
 /* ---- Control de Servicios: toques dinamicos globales ---- */
 
 input, select, textarea, button {

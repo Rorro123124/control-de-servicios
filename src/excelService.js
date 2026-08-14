@@ -1,4 +1,3 @@
-import ExcelJS from "exceljs";
 import { getProducts } from "./productService";
 import { getInvoices } from "./invoiceService";
 import { getCustomers, getDebts } from "./debtService";
@@ -92,6 +91,7 @@ function buildComposicionChartUrl(ingresos, costo, ganancia, fecha) {
 }
 
 export async function exportToExcel(businessId, businessName) {
+  const { default: ExcelJS } = await import("exceljs");
   const products = await getProducts(businessId);
   const invoices = await getInvoices(businessId);
   const customers = await getCustomers(businessId);

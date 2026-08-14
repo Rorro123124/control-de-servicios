@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { preguntarAlAsistente } from "./chatService";
 
 const COLORS = {
-  marca: "#154B3E",
-  marcaClaro: "#1F6F5C",
-  acento: "#E5A13C",
-  fondo: "#F5F3EE",
-  borde: "#E4DFD3",
-  texto: "#211D17",
-  textoSuave: "#736C5E",
+  marca: "var(--cs-marca)",
+  marcaClaro: "var(--cs-marca-claro)",
+  acento: "var(--cs-acento)",
+  fondo: "var(--cs-fondo)",
+  borde: "var(--cs-borde)",
+  texto: "var(--cs-texto)",
+  textoSuave: "var(--cs-texto-suave)",
 };
 const FONT_DISPLAY = "'Fraunces', Georgia, serif";
 const FONT_BODY = "'IBM Plex Sans', -apple-system, sans-serif";
@@ -70,7 +70,7 @@ export default function ChatWidget({ businessId, businessName }) {
 
       {open && (
         <div className="cs-fade-up" style={{
-          position: "fixed", bottom: 86, right: 88, width: 340, height: 440, background: "white",
+          position: "fixed", bottom: 86, right: 88, width: 340, height: 440, background: "var(--cs-panel)",
           borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", border: "1px solid " + COLORS.borde,
           display: "flex", flexDirection: "column", zIndex: 60, overflow: "hidden", fontFamily: FONT_BODY,
         }}>

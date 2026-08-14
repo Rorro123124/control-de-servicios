@@ -1,5 +1,3 @@
-import jsPDF from "jspdf";
-
 const ANCHO = 80;
 const MARGEN = 4;
 const CENTRO = ANCHO / 2;
@@ -29,6 +27,7 @@ function lineaPunteada(doc, y) {
 }
 
 export async function generateInvoicePdf(business, invoice, items) {
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: [ANCHO, 260] });
   let y = 8;
 
@@ -177,6 +176,7 @@ export async function generateInvoicePdf(business, invoice, items) {
 }
 
 export async function generateQuotePdf(business, quote, items) {
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: [ANCHO, 260] });
   let y = 8;
 

@@ -2,14 +2,14 @@ import { useState } from "react";
 import { redimirPuntos, COP_POR_PUNTO } from "./loyaltyService";
 
 const COLORS = {
-  marca: "#154B3E",
-  marcaClaro: "#1F6F5C",
-  acento: "#E5A13C",
-  fondo: "#F5F3EE",
-  borde: "#E4DFD3",
-  texto: "#211D17",
-  textoSuave: "#736C5E",
-  urgente: "#D6483C",
+  marca: "var(--cs-marca)",
+  marcaClaro: "var(--cs-marca-claro)",
+  acento: "var(--cs-acento)",
+  fondo: "var(--cs-fondo)",
+  borde: "var(--cs-borde)",
+  texto: "var(--cs-texto)",
+  textoSuave: "var(--cs-texto-suave)",
+  urgente: "var(--cs-urgente)",
 };
 const FONT_DISPLAY = "'Fraunces', Georgia, serif";
 const FONT_BODY = "'IBM Plex Sans', -apple-system, sans-serif";
@@ -37,7 +37,7 @@ export default function PuntosModal({ customers, onClose, onChange }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(33,29,23,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 70, padding: 16 }}>
-      <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 600, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: FONT_BODY }}>
+      <div style={{ background: "var(--cs-panel)", borderRadius: 16, width: "100%", maxWidth: 600, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: FONT_BODY }}>
         <div style={{ background: COLORS.marca, color: "white", padding: "18px 22px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: 19, fontWeight: 600 }}>Puntos de fidelizacion</div>

@@ -77,6 +77,28 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     }));
   }
 
+  async function getSuppliersForBusiness(businessId) {
+    const { data, error } = await supabase.from("suppliers").select("*").eq("business_id", businessId).order("name");
+    if (error) throw error;
+    return data;
+  }
+
+  async function getSellersForBusiness(businessId) {
+    const { data, error } = await supabase.from("sellers").select("*").eq("business_id", businessId).order("name");
+    if (error) throw error;
+    return data;
+  }
+
+  async function getAllInvoicesForBusiness(businessId) {
+    const { data, error } = await supabase
+      .from("invoices")
+      .select("*, invoice_items(*)")
+      .eq("business_id", businessId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+
   return {
     getBusinesses,
     getBusinessForChat,
@@ -84,6 +106,9 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     getProductsForBusiness,
     getInvoicesToday,
     getExpensesForBusiness,
+    getSuppliersForBusiness,
+    getSellersForBusiness,
+    getAllInvoicesForBusiness,
   };
 }
 

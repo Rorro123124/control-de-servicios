@@ -32,25 +32,26 @@ import ChatWidget from "./ChatWidget";
 import GastosModal from "./GastosModal";
 import HistorialFacturasModal from "./HistorialFacturasModal";
 import PuntosModal from "./PuntosModal";
+import QuickSearch from "./QuickSearch";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const COLORS = {
-  urgente: "#D6483C",
-  urgenteBg: "#FBE8E5",
-  atencion: "#C98A1F",
-  atencionBg: "#FAF0DC",
-  bien: "#2F7A56",
-  bienBg: "#E4F1EA",
-  fondo: "#F5F3EE",
-  panel: "#FFFFFF",
-  borde: "#E4DFD3",
-  texto: "#211D17",
-  textoSuave: "#736C5E",
-  marca: "#154B3E",
-  marcaClaro: "#1F6F5C",
-  acento: "#E5A13C",
+  urgente: "var(--cs-urgente)",
+  urgenteBg: "var(--cs-urgente-bg)",
+  atencion: "var(--cs-atencion)",
+  atencionBg: "var(--cs-atencion-bg)",
+  bien: "var(--cs-bien)",
+  bienBg: "var(--cs-bien-bg)",
+  fondo: "var(--cs-fondo)",
+  panel: "var(--cs-panel)",
+  borde: "var(--cs-borde)",
+  texto: "var(--cs-texto)",
+  textoSuave: "var(--cs-texto-suave)",
+  marca: "var(--cs-marca)",
+  marcaClaro: "var(--cs-marca-claro)",
+  acento: "var(--cs-acento)",
 };
 
 const FONT_DISPLAY = "'Fraunces', Georgia, serif";
@@ -172,15 +173,21 @@ function btnPrimary(extra) {
   return { padding: "10px 16px", borderRadius: 9, border: "none", background: COLORS.marca, color: "white", fontWeight: 600, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, ...extra };
 }
 function btnGhost(extra) {
-  return { padding: "10px 16px", borderRadius: 9, border: "1px solid " + COLORS.borde, background: "white", color: COLORS.texto, fontWeight: 600, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, ...extra };
+  return { padding: "10px 16px", borderRadius: 9, border: "1px solid " + COLORS.borde, background: COLORS.panel, color: COLORS.texto, fontWeight: 600, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, ...extra };
 }
 function btnDanger(extra) {
-  return { padding: "10px 16px", borderRadius: 9, border: "1px solid #EBC9C4", background: "white", color: COLORS.urgente, fontWeight: 600, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, ...extra };
+  return { padding: "10px 16px", borderRadius: 9, border: "1px solid #EBC9C4", background: COLORS.panel, color: COLORS.urgente, fontWeight: 600, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, ...extra };
 }
 
 export default function Dashboard({ businessId, businessName, businesses, onSwitchBusiness, onBusinessesChange }) {
   const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 860);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const guardado = localStorage.getItem("cs-dark-mode");
+    if (guardado != null) return guardado === "true";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [sellers, setSellers] = useState([]);
@@ -228,6 +235,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
   const [showPuntos, setShowPuntos] = useState(false);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [debts, setDebts] = useState([]);
   const [customerForm, setCustomerForm] = useState(emptyCustomer);
@@ -262,11 +270,13 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const vends = await getSellers(businessId);
     const gastosData = await getExpenses(businessId);
     const invoicesData = await getInvoices(businessId);
+    const customersData = await getCustomers(businessId);
     setProducts(prods);
     setSuppliers(provs);
     setSellers(vends);
     setGastos(gastosData);
     setInvoices(invoicesData);
+    setCustomers(customersData);
     setCargando(false);
   };
 
@@ -283,6 +293,22 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     }
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-cs-theme", darkMode ? "dark" : "light");
+    localStorage.setItem("cs-dark-mode", String(darkMode));
+  }, [darkMode]);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setShowQuickSearch(true);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   useEffect(() => {
@@ -952,6 +978,26 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     }
   };
 
+  const quickSearchActions = useMemo(
+    () => [
+      { label: "Inicio", run: () => setVistaActiva("inicio") },
+      { label: "Inventario", run: () => setVistaActiva("inventario") },
+      { label: "Nueva factura", run: abrirFactura },
+      { label: cashSession ? "Cerrar caja" : "Abrir caja", run: cashSession ? abrirModalCerrarCaja : abrirModalCaja },
+      { label: "Fiado", run: abrirFiado },
+      { label: "Puntos", run: abrirPuntos },
+      { label: "Cotizaciones", run: abrirCotizaciones },
+      { label: "Historial de facturas", run: () => setShowHistorial(true) },
+      { label: "Conteo fisico", run: abrirConteo },
+      { label: "Proveedores", run: () => setShowSuppliers(true) },
+      { label: "Gastos", run: () => setShowGastos(true) },
+      { label: "Datos negocio", run: abrirPerfilNegocio },
+      { label: "Exportar Excel", run: exportarExcel },
+      { label: "Respaldo", run: exportarBackup },
+    ],
+    [cashSession]
+  );
+
   return (
     <div style={{ minHeight: "100vh", background: COLORS.fondo, fontFamily: FONT_BODY, color: COLORS.texto }}>
 
@@ -1023,8 +1069,26 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {cashSession ? (
-              <span style={{ fontSize: 12, background: "rgba(255,255,255,0.15)", padding: "5px 10px", borderRadius: 999 }}>🟢 Caja abierta</span>
+              <span style={{ fontSize: 12, background: "rgba(255,255,255,0.15)", padding: "5px 10px", borderRadius: 999 }}>Caja abierta</span>
             ) : null}
+            <button
+              onClick={() => setShowQuickSearch(true)}
+              title="Buscar (Ctrl+K)"
+              style={{ width: 34, height: 34, borderRadius: 9, border: "1px solid rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.08)", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            </button>
+            <button
+              onClick={() => setDarkMode((v) => !v)}
+              title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+              style={{ width: 34, height: 34, borderRadius: 9, border: "1px solid rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.08)", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              {darkMode ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+              )}
+            </button>
             <button onClick={() => supabase.auth.signOut()} style={{ padding: "8px 14px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.08)", color: "white", cursor: "pointer", fontFamily: FONT_BODY, fontSize: 13 }}>
               Cerrar sesion
             </button>
@@ -1044,8 +1108,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           onClick={() => { if (isMobile) setSidebarOpen(false); }}
           style={
             isMobile
-              ? { width: 260, minWidth: 260, background: "white", minHeight: "100vh", padding: "18px 12px", position: "fixed", top: 0, left: 0, bottom: 0, overflowY: "auto", zIndex: 51, boxShadow: "8px 0 24px -8px rgba(0,0,0,0.25)" }
-              : { width: 220, minWidth: 220, background: "white", borderRight: "1px solid " + COLORS.borde, minHeight: "calc(100vh - 57px)", padding: "18px 12px", position: "sticky", top: 0 }
+              ? { width: 260, minWidth: 260, background: COLORS.panel, minHeight: "100vh", padding: "18px 12px", position: "fixed", top: 0, left: 0, bottom: 0, overflowY: "auto", zIndex: 51, boxShadow: "8px 0 24px -8px rgba(0,0,0,0.25)" }
+              : { width: 220, minWidth: 220, background: COLORS.panel, borderRight: "1px solid " + COLORS.borde, minHeight: "calc(100vh - 57px)", padding: "18px 12px", position: "sticky", top: 0 }
           }
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Vista</div>
@@ -1284,7 +1348,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
         {cargando ? (
           <p style={{ color: COLORS.textoSuave }}>Cargando...</p>
         ) : filtrados.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 48, background: "white", borderRadius: 14, border: "1px dashed " + COLORS.borde }}>
+          <div style={{ textAlign: "center", padding: 48, background: COLORS.panel, borderRadius: 14, border: "1px dashed " + COLORS.borde }}>
             <p style={{ color: COLORS.textoSuave }}>Todavia no tienes productos. Dale a "+ Producto" para agregar el primero.</p>
           </div>
         ) : (
@@ -1432,7 +1496,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
 
       {showForm && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <form className="cs-modal-box" onSubmit={guardar} style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 10, maxHeight: "90vh", overflowY: "auto" }}>
+          <form className="cs-modal-box" onSubmit={guardar} style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 10, maxHeight: "90vh", overflowY: "auto" }}>
             <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>{editingId ? "Editar producto" : "Nuevo producto"}</h3>
 
             <label style={labelStyle}>Nombre</label>
@@ -1557,7 +1621,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
 
       {showSuppliers && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 420, maxHeight: "85vh", overflowY: "auto" }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 420, maxHeight: "85vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Proveedores</h3>
               <button onClick={() => setShowSuppliers(false)} style={{ border: "none", background: "transparent", fontSize: 20, cursor: "pointer", color: COLORS.textoSuave }}>×</button>
@@ -1592,7 +1656,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       {showBusinessProfile && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <form className="cs-modal-box" onSubmit={guardarPerfilNegocio} style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 0, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", maxHeight: "90vh", overflow: "hidden" }}>
+          <form className="cs-modal-box" onSubmit={guardarPerfilNegocio} style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 0, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", maxHeight: "90vh", overflow: "hidden" }}>
             <div style={{ background: COLORS.marca, padding: "20px 24px", color: "white" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🏬</div>
@@ -1684,7 +1748,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       {showInvoice && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 500, display: "flex", flexDirection: "column", gap: 10, maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 500, display: "flex", flexDirection: "column", gap: 10, maxHeight: "90vh", overflowY: "auto" }}>
             <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Nueva factura</h3>
 
             <label style={labelStyle}>Atendido por (opcional)</label>
@@ -1831,7 +1895,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       {showOpenCaja && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 10 }}>
             <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Abrir caja</h3>
             <p style={{ fontSize: 12, color: COLORS.textoSuave, margin: 0 }}>¿Con cuanto efectivo empiezas el turno?</p>
             <input inputMode="numeric" placeholder="Ej: 50.000" value={formatMiles(openingAmount)} onChange={(e) => setOpeningAmount(soloDigitos(e.target.value))} style={inputStyle} autoFocus />
@@ -1845,7 +1909,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
 
       {showCloseCaja && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 10 }}>
             <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Cerrar caja</h3>
             <div style={{ fontSize: 13, fontFamily: FONT_MONO }}>
               Efectivo esperado: <strong>{formatCOP(expectedCash)}</strong>
@@ -1861,7 +1925,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       {showFiado && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Fiado</h3>
               <button onClick={() => setShowFiado(false)} style={{ border: "none", background: "transparent", fontSize: 20, cursor: "pointer", color: COLORS.textoSuave }}>×</button>
@@ -1940,7 +2004,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       {showConteo && conteoActual && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Conteo fisico</h3>
               <button onClick={() => setShowConteo(false)} style={{ border: "none", background: "transparent", fontSize: 20, cursor: "pointer", color: COLORS.textoSuave }}>×</button>
@@ -1983,7 +2047,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       )}
       {showQuotes && (
         <div className="cs-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(20,17,12,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 40 }}>
-          <div className="cs-modal-box" style={{ background: "white", borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="cs-modal-box" style={{ background: COLORS.panel, borderRadius: 16, boxShadow: "0 20px 60px -12px rgba(21,75,62,0.35)", padding: 24, width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontSize: 20 }}>Cotizaciones</h3>
               <button onClick={() => setShowQuotes(false)} style={{ border: "none", background: "transparent", fontSize: 20, cursor: "pointer", color: COLORS.textoSuave }}>×</button>
@@ -2082,6 +2146,15 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           customers={customers}
           onClose={() => setShowPuntos(false)}
           onChange={cargarFiado}
+        />
+      )}
+      {showQuickSearch && (
+        <QuickSearch
+          products={products}
+          suppliers={suppliers}
+          customers={customers}
+          actions={quickSearchActions}
+          onClose={() => setShowQuickSearch(false)}
         />
       )}
     </div>
