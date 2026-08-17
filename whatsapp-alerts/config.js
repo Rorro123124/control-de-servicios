@@ -20,5 +20,6 @@ module.exports = {
   reportSchedule: process.env.REPORT_SCHEDULE || "0 21 * * *",
   backupSchedule: process.env.BACKUP_SCHEDULE || "0 6 * * 1",
   reminderSchedule: process.env.REMINDER_SCHEDULE || "0 18 * * *",
+  pricingCopilotSchedule: process.env.PRICING_COPILOT_SCHEDULE || "0 8 * * 1",
   customerBotBusinessId: process.env.CUSTOMER_BOT_BUSINESS_ID || null,
 };

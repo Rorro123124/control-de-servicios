@@ -16,6 +16,7 @@ const { startCustomerWhatsappBot, sendCustomerMessage } = require("./whatsappCus
 const { createServer } = require("./server");
 const reportService = require("./reportService");
 const { buildBackupJson } = require("./backupService");
+const { buildPricingSignals } = require("./pricingCopilotService");
 
 async function main() {
   const inventoryService = createInventoryService({
@@ -151,15 +152,68 @@ async function main() {
     }
   }
 
+  async function sendPricingCopilot() {
+    try {
+      const businesses = await inventoryService.getBusinesses();
+
+      for (const business of businesses) {
+        const chatId = business.alert_whatsapp_to || config.defaultAlertTo;
+        if (!chatId) continue;
+
+        try {
+          const products = await inventoryService.getProductsForBusiness(business.id);
+          const { acelerando, estancados } = buildPricingSignals(products);
+
+          if (acelerando.length === 0 && estancados.length === 0) {
+            console.log("[" + business.name + "] copiloto de precios: nada relevante esta semana.");
+            continue;
+          }
+
+          let datos = "";
+          if (acelerando.length > 0) {
+            datos +=
+              "Productos vendiendose mas rapido de lo normal:\n" +
+              acelerando
+                .map((p) => "- " + p.name + ": vendiendo " + p.velocidadReciente.toFixed(1) + "/dia vs su promedio de " + p.demanda.toFixed(1) + "/dia, stock actual " + p.stock)
+                .join("\n") +
+              "\n\n";
+          }
+          if (estancados.length > 0) {
+            datos +=
+              "Productos sin ninguna venta en los ultimos 14 dias (con stock disponible):\n" +
+              estancados.map((p) => "- " + p.name + ": stock " + p.stock).join("\n");
+          }
+
+          const prompt =
+            "Eres un asistente de negocios para el dueno de la tienda '" + business.name + "'. " +
+            "Con estos datos reales de esta semana, escribe un mensaje corto (maximo 5-6 lineas), en espanol sencillo, sin tecnicismos, con 1 o 2 sugerencias concretas y accionables (ej: subir precio de X, hacer promocion de Y, pedir mas de Z). " +
+            "No inventes datos que no esten aqui. Usa un tono cercano, como un consejo de un amigo que sabe de negocios:\n\n" +
+            datos;
+
+          const sugerencia = await askAi(prompt);
+          const mensaje = "Copiloto de precios - " + business.name + "\n\n" + sugerencia;
+          await sendMessage(chatId, mensaje);
+          console.log("[" + new Date().toLocaleString() + "] " + business.name + ": copiloto de precios enviado.");
+        } catch (err) {
+          console.error("Error en copiloto de precios de " + business.name + ":", err.message || err);
+        }
+      }
+    } catch (err) {
+      console.error("Error obteniendo negocios para copiloto de precios:", err.message || err);
+    }
+  }
+
   console.log("Worker de alertas iniciado. Revisando cada: " + config.cronSchedule);
   console.log("Reporte diario programado: " + config.reportSchedule);
   console.log("Backup automatico programado: " + config.backupSchedule);
   console.log("Recordatorios de citas programados: " + config.reminderSchedule);
+  console.log("Copiloto de precios programado: " + config.pricingCopilotSchedule);
   await checkAllBusinesses();
   cron.schedule(config.cronSchedule, checkAllBusinesses);
   cron.schedule(config.reportSchedule, sendDailyReports);
   cron.schedule(config.backupSchedule, sendWeeklyBackups);
   cron.schedule(config.reminderSchedule, sendAppointmentReminders);
+  cron.schedule(config.pricingCopilotSchedule, sendPricingCopilot);
 
   try {
     startTelegramBot({
