@@ -93,7 +93,8 @@ function createServer({ inventoryService, askAi }) {
         "\n\nAqui hay unas filas de ejemplo con datos reales, en el mismo orden que las columnas:\n" +
         JSON.stringify(sampleRows || []) +
         "\n\nQuiero que me digas a cual de estos campos corresponde cada columna: " + camposDisponibles.join(", ") + ". " +
-        "Los significados son: name=nombre del producto, category=categoria, stock=cantidad en inventario, salePrice=precio de venta al publico, realCost=costo real o de compra del producto, avgDailyDemand=demanda diaria promedio o ventas estimadas por dia, expirationDate=fecha de vencimiento, barcode=codigo de barras, ignorar=esta columna no corresponde a ninguno de estos campos. " +
+        "Los significados son: name=nombre del producto, category=categoria o tipo de producto (texto, ej: Verduras, Ropa, Aseo), stock=cantidad de unidades en inventario (numero), salePrice=precio de venta al publico, realCost=costo real o de compra del producto, avgDailyDemand=demanda diaria promedio o ventas estimadas por dia, expirationDate=fecha de vencimiento, barcode=codigo de barras, ignorar=esta columna no corresponde a ninguno de estos campos. " +
+        "OJO: 'category' y 'stock' son cosas MUY distintas aunque sus nombres en espanol se parezcan (categoria vs cantidad) - category es SIEMPRE texto descriptivo (como 'Verduras' o 'Bebidas'), stock es SIEMPRE un numero de unidades. Revisa los datos de ejemplo de cada columna con cuidado antes de decidir, no te guies solo por el nombre del encabezado. " +
         "Responde SOLO con un objeto JSON valido donde cada llave es el nombre EXACTO de la columna del archivo (tal como aparece arriba) y el valor es el campo correspondiente de la lista. No agregues texto explicativo, ni comillas de markdown, ni nada mas, solo el JSON.";
 
       const respuesta = await askAi(prompt);

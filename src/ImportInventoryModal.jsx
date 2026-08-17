@@ -166,9 +166,14 @@ export default function ImportInventoryModal({ businessId, onClose, onImported }
               <p style={{ fontSize: 13.5, color: COLORS.textoSuave, marginBottom: 10 }}>
                 Revisa que cada columna quedo mapeada al campo correcto. La IA ya hizo una primera propuesta, ajusta lo que haga falta.
               </p>
-              {headers.map((h) => (
+              {headers.map((h, i) => (
                 <div key={h} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                  <div style={{ flex: "0 0 160px", fontSize: 13, fontWeight: 600, color: COLORS.texto, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h}</div>
+                  <div style={{ flex: "0 0 190px", overflow: "hidden" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.texto, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h}</div>
+                    <div style={{ fontSize: 11, color: COLORS.textoSuave, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      ej: {String(todasLasFilas[0] && todasLasFilas[0][i] != null ? todasLasFilas[0][i] : "-")}
+                    </div>
+                  </div>
                   <select
                     value={mapeo[h] || "ignorar"}
                     onChange={(e) => setMapeo({ ...mapeo, [h]: e.target.value })}
