@@ -42,6 +42,7 @@ import { getPurchaseOrders } from "./purchaseOrderService";
 import MermasModal from "./MermasModal";
 import { getWasteRecords } from "./wasteService";
 import AppointmentsModal from "./AppointmentsModal";
+import ImportInventoryModal from "./ImportInventoryModal";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -246,6 +247,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [mermas, setMermas] = useState([]);
   const [showMermas, setShowMermas] = useState(false);
   const [showAppointments, setShowAppointments] = useState(false);
+  const [showImportInventory, setShowImportInventory] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
   const [showPuntos, setShowPuntos] = useState(false);
@@ -1054,6 +1056,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       { label: "Proveedores", run: () => setShowSuppliers(true) },
       { label: "Ordenes de compra", run: () => setShowPurchaseOrders(true) },
       { label: "Mermas", run: () => setShowMermas(true) },
+      { label: "Importar desde Excel", run: () => setShowImportInventory(true) },
       { label: "Gastos", run: () => setShowGastos(true) },
       { label: "Datos negocio", run: abrirPerfilNegocio },
       { label: "Exportar Excel", run: exportarExcel },
@@ -1228,6 +1231,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </button>
           <button onClick={() => setShowMermas(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Mermas
+          </button>
+          <button onClick={() => setShowImportInventory(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
+            Importar desde Excel
           </button>
           <button
             onClick={() => {
@@ -2311,6 +2317,13 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           sellers={sellers}
           products={products}
           onClose={() => setShowAppointments(false)}
+        />
+      )}
+      {showImportInventory && (
+        <ImportInventoryModal
+          businessId={businessId}
+          onClose={() => setShowImportInventory(false)}
+          onImported={cargar}
         />
       )}
     </div>

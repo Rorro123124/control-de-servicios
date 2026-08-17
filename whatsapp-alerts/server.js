@@ -75,6 +75,37 @@ function createServer({ inventoryService, askAi }) {
     }
   });
 
+  app.post("/interpretar-columnas", async (req, res) => {
+    const headers = req.body && req.body.headers;
+    const sampleRows = req.body && req.body.sampleRows;
+
+    if (!headers || !Array.isArray(headers) || headers.length === 0) {
+      res.status(400).json({ error: "Falta la lista de columnas del archivo." });
+      return;
+    }
+
+    try {
+      const camposDisponibles = ["name", "category", "stock", "salePrice", "realCost", "avgDailyDemand", "expirationDate", "barcode", "ignorar"];
+
+      const prompt =
+        "Tengo un archivo de Excel con un inventario de productos de una tienda. Estas son las columnas (encabezados) del archivo, en orden:\n" +
+        JSON.stringify(headers) +
+        "\n\nAqui hay unas filas de ejemplo con datos reales, en el mismo orden que las columnas:\n" +
+        JSON.stringify(sampleRows || []) +
+        "\n\nQuiero que me digas a cual de estos campos corresponde cada columna: " + camposDisponibles.join(", ") + ". " +
+        "Los significados son: name=nombre del producto, category=categoria, stock=cantidad en inventario, salePrice=precio de venta al publico, realCost=costo real o de compra del producto, avgDailyDemand=demanda diaria promedio o ventas estimadas por dia, expirationDate=fecha de vencimiento, barcode=codigo de barras, ignorar=esta columna no corresponde a ninguno de estos campos. " +
+        "Responde SOLO con un objeto JSON valido donde cada llave es el nombre EXACTO de la columna del archivo (tal como aparece arriba) y el valor es el campo correspondiente de la lista. No agregues texto explicativo, ni comillas de markdown, ni nada mas, solo el JSON.";
+
+      const respuesta = await askAi(prompt);
+      const limpio = respuesta.replace(/```json|```/g, "").trim();
+      const mapeo = JSON.parse(limpio);
+      res.json({ mapping: mapeo });
+    } catch (err) {
+      console.error("Error interpretando columnas:", err.message || err);
+      res.status(500).json({ error: "No pude interpretar las columnas del archivo, puedes mapearlas a mano." });
+    }
+  });
+
   return app;
 }
 
