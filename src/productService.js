@@ -104,6 +104,7 @@ export async function getProducts(businessId) {
       showInCatalog: p.show_in_catalog !== false,
       hasVariants: tieneVariantes,
       variants: variantes,
+      linkedProductId: p.linked_product_id || null,
       salesHistory: (p.sales || []).map((s) => ({ date: s.sale_date, qty: Number(s.qty) })),
     };
   });
@@ -161,6 +162,67 @@ export async function deleteProduct(productId) {
   if (error) throw error;
 }
 
+// ---------- STOCK COMPARTIDO ENTRE NEGOCIOS ----------
+export async function applyStockDelta(productId, delta) {
+  const { data: product, error } = await supabase.from("products").select("stock, linked_product_id").eq("id", productId).single();
+  if (error) throw error;
+  const nuevoStock = Math.max(0, Number(product.stock) + delta);
+  await supabase.from("products").update({ stock: nuevoStock }).eq("id", productId);
+
+  if (product.linked_product_id) {
+    const { data: linked } = await supabase.from("products").select("stock").eq("id", product.linked_product_id).single();
+    if (linked) {
+      const nuevoStockLinked = Math.max(0, Number(linked.stock) + delta);
+      await supabase.from("products").update({ stock: nuevoStockLinked }).eq("id", product.linked_product_id);
+    }
+  }
+}
+
+export async function getLinkableProducts(currentBusinessId) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { data: otherBusinesses, error: bizError } = await supabase
+    .from("businesses")
+    .select("id, name")
+    .eq("owner_id", userData.user.id)
+    .neq("id", currentBusinessId);
+  if (bizError) throw bizError;
+
+  if (!otherBusinesses || otherBusinesses.length === 0) return [];
+
+  const businessIds = otherBusinesses.map((b) => b.id);
+  const { data: otherProducts, error: prodError } = await supabase
+    .from("products")
+    .select("id, name, business_id, linked_product_id")
+    .in("business_id", businessIds);
+  if (prodError) throw prodError;
+
+  const nombresPorNegocio = {};
+  otherBusinesses.forEach((b) => (nombresPorNegocio[b.id] = b.name));
+
+  return (otherProducts || [])
+    .filter((p) => !p.linked_product_id)
+    .map((p) => ({ id: p.id, name: p.name, businessName: nombresPorNegocio[p.business_id] || "Otro negocio" }));
+}
+
+export async function linkProducts(productIdA, productIdB) {
+  await supabase.from("products").update({ linked_product_id: productIdB }).eq("id", productIdA);
+  await supabase.from("products").update({ linked_product_id: productIdA }).eq("id", productIdB);
+}
+
+export async function unlinkProduct(productId) {
+  const { data: product } = await supabase.from("products").select("linked_product_id").eq("id", productId).single();
+  await supabase.from("products").update({ linked_product_id: null }).eq("id", productId);
+  if (product && product.linked_product_id) {
+    await supabase.from("products").update({ linked_product_id: null }).eq("id", product.linked_product_id);
+  }
+}
+
+export async function getLinkedProductInfo(productId) {
+  const { data, error } = await supabase.from("products").select("id, name, businesses(name)").eq("id", productId).single();
+  if (error) throw error;
+  return { id: data.id, name: data.name, businessName: data.businesses ? data.businesses.name : "Otro negocio" };
+}
+
 // ---------- VENTAS ----------
 export async function registerSale(productId, qty, date = new Date().toISOString().slice(0, 10), variantId = null) {
   const { data: existing } = await supabase
@@ -185,8 +247,7 @@ export async function registerSale(productId, qty, date = new Date().toISOString
 
   const { data: product } = await supabase.from("products").select("stock, item_type, has_variants").eq("id", productId).single();
   if (product.item_type === "servicio" || product.has_variants) return;
-  const newStock = Math.max(0, Number(product.stock) - qty);
-  await supabase.from("products").update({ stock: newStock }).eq("id", productId);
+  await applyStockDelta(productId, -qty);
 }
 
 export async function reverseSale(productId, qty, date, variantId = null) {
@@ -217,6 +278,5 @@ export async function reverseSale(productId, qty, date, variantId = null) {
 
   const { data: product } = await supabase.from("products").select("stock, item_type, has_variants").eq("id", productId).single();
   if (!product || product.item_type === "servicio" || product.has_variants) return;
-  const newStock = Number(product.stock) + qty;
-  await supabase.from("products").update({ stock: newStock }).eq("id", productId);
+  await applyStockDelta(productId, qty);
 }
