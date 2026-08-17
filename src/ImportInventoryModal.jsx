@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { interpretarColumnas } from "./chatService";
+import { interpretarColumnas, sugerirCategorias } from "./chatService";
 import { addProduct } from "./productService";
 
 const COLORS = {
@@ -35,6 +35,8 @@ export default function ImportInventoryModal({ businessId, onClose, onImported }
   const [mapeo, setMapeo] = useState({});
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState({ ok: 0, fallidos: 0 });
+  const [categoriasSugeridas, setCategoriasSugeridas] = useState(null);
+  const [cargandoCategorias, setCargandoCategorias] = useState(false);
 
   async function onFileChange(e) {
     const file = e.target.files[0];
@@ -88,7 +90,7 @@ export default function ImportInventoryModal({ businessId, onClose, onImported }
     }
   }
 
-  function filaAProducto(fila) {
+  function filaAProducto(fila, indiceFila) {
     const producto = {};
     headers.forEach((h, i) => {
       const campo = mapeo[h];
@@ -96,7 +98,26 @@ export default function ImportInventoryModal({ businessId, onClose, onImported }
         producto[campo] = fila[i];
       }
     });
+    if (!producto.category && categoriasSugeridas && categoriasSugeridas[indiceFila]) {
+      producto.category = categoriasSugeridas[indiceFila];
+    }
     return producto;
+  }
+
+  const categoriaYaMapeada = Object.values(mapeo).includes("category");
+
+  async function pedirSugerenciasDeCategoria() {
+    setCargandoCategorias(true);
+    setError("");
+    try {
+      const nombres = todasLasFilas.map((fila, i) => filaAProducto(fila, i).name || "");
+      const sugerencias = await sugerirCategorias(nombres);
+      setCategoriasSugeridas(sugerencias);
+    } catch (err) {
+      setError("No se pudieron sugerir categorias: " + err.message);
+    } finally {
+      setCargandoCategorias(false);
+    }
   }
 
   async function confirmarImportacion() {
@@ -110,8 +131,8 @@ export default function ImportInventoryModal({ businessId, onClose, onImported }
     let ok = 0;
     let fallidos = 0;
 
-    for (const fila of todasLasFilas) {
-      const producto = filaAProducto(fila);
+    for (let i = 0; i < todasLasFilas.length; i++) {
+      const producto = filaAProducto(todasLasFilas[i], i);
       if (!producto.name) {
         fallidos++;
         continue;
@@ -189,6 +210,46 @@ export default function ImportInventoryModal({ businessId, onClose, onImported }
               <div style={{ marginTop: 16, padding: "10px 12px", background: COLORS.fondo, borderRadius: 8, fontSize: 12.5, color: COLORS.textoSuave }}>
                 Se van a importar <strong>{todasLasFilas.length}</strong> productos.
               </div>
+
+              {!categoriaYaMapeada && (
+                <div style={{ marginTop: 12, padding: 12, border: "1px dashed " + COLORS.borde, borderRadius: 8 }}>
+                  <p style={{ fontSize: 12.5, color: COLORS.textoSuave, margin: "0 0 8px" }}>
+                    Tu archivo no tiene una columna de categoria. Si quieres, la IA puede sugerir una categoria por producto segun su nombre — tu decides si la usas, nada se guarda todavia.
+                  </p>
+                  {!categoriasSugeridas ? (
+                    <button
+                      onClick={pedirSugerenciasDeCategoria}
+                      disabled={cargandoCategorias}
+                      style={{ background: COLORS.marcaClaro, color: "white", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      {cargandoCategorias ? "Pensando..." : "Sugerir categorias con IA"}
+                    </button>
+                  ) : (
+                    <div>
+                      <p style={{ fontSize: 12, color: COLORS.textoSuave, margin: "0 0 8px" }}>Revisa y ajusta si hace falta antes de importar:</p>
+                      <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                        {todasLasFilas.map((fila, i) => {
+                          const nombre = filaAProducto(fila, i).name || "(sin nombre)";
+                          return (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                              <div style={{ flex: 1, fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nombre}</div>
+                              <input
+                                value={categoriasSugeridas[i] || ""}
+                                onChange={(e) => {
+                                  const copia = [...categoriasSugeridas];
+                                  copia[i] = e.target.value;
+                                  setCategoriasSugeridas(copia);
+                                }}
+                                style={{ width: 140, padding: "5px 8px", borderRadius: 6, border: "1px solid " + COLORS.borde, fontSize: 12 }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <button
                 onClick={confirmarImportacion}

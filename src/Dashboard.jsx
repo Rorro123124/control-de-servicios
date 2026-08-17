@@ -68,6 +68,18 @@ const FONT_DISPLAY = "'Fraunces', Georgia, serif";
 const FONT_BODY = "'IBM Plex Sans', -apple-system, sans-serif";
 const FONT_MONO = "'IBM Plex Mono', 'Courier New', monospace";
 
+function agruparPorCategoria(productos) {
+  const grupos = {};
+  productos.forEach((p) => {
+    const cat = p.category || "Sin categoria";
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push(p);
+  });
+  return Object.keys(grupos)
+    .sort()
+    .map((cat) => ({ categoria: cat, productos: grupos[cat] }));
+}
+
 const emptyForm = { name: "", category: "", stock: "", salePrice: "", realCost: "", avgDailyDemand: "", expirationDate: "", supplierId: "", itemType: "producto", barcode: "", photoUrl: "", showInCatalog: true, hasVariants: false };
 const emptyVariant = { name: "", stock: "", barcode: "" };
 const emptySupplier = { name: "", phone: "", notes: "" };
@@ -1916,8 +1928,12 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
             <div style={{ display: "flex", gap: 6 }}>
               <select value={invoiceProductId} onChange={(e) => { setInvoiceProductId(e.target.value); setInvoiceVariantId(""); }} style={{ ...inputStyle, flex: 1 }}>
                 <option value="">Selecciona un producto</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name} (stock: {p.stock})</option>
+                {agruparPorCategoria(products).map((grupo) => (
+                  <optgroup key={grupo.categoria} label={grupo.categoria}>
+                    {grupo.productos.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} (stock: {p.stock})</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <input
@@ -2192,8 +2208,12 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
             <div style={{ display: "flex", gap: 6 }}>
               <select value={quoteProductId} onChange={(e) => { setQuoteProductId(e.target.value); setQuoteVariantId(""); }} style={{ ...inputStyle, flex: 1 }}>
                 <option value="">Selecciona un producto</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                {agruparPorCategoria(products).map((grupo) => (
+                  <optgroup key={grupo.categoria} label={grupo.categoria}>
+                    {grupo.productos.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <input type="number" min="1" value={quoteQty} onChange={(e) => setQuoteQty(e.target.value)} style={{ ...inputStyle, width: 70 }} />

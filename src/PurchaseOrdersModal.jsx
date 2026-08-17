@@ -16,6 +16,18 @@ const COLORS = {
 const FONT_DISPLAY = "'Fraunces', Georgia, serif";
 const FONT_BODY = "'IBM Plex Sans', -apple-system, sans-serif";
 
+function agruparPorCategoria(productos) {
+  const grupos = {};
+  productos.forEach((p) => {
+    const cat = p.category || "Sin categoria";
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push(p);
+  });
+  return Object.keys(grupos)
+    .sort()
+    .map((cat) => ({ categoria: cat, productos: grupos[cat] }));
+}
+
 function formatCOP(n) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n || 0);
 }
@@ -133,8 +145,12 @@ export default function PurchaseOrdersModal({ businessId, orders, suppliers, pro
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               <select value={productSel} onChange={(e) => setProductSel(e.target.value)} style={{ flex: "1 1 180px", padding: "9px 11px", borderRadius: 8, border: "1px solid " + COLORS.borde, fontSize: 13.5 }}>
                 <option value="">Selecciona un producto...</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                {agruparPorCategoria(products).map((grupo) => (
+                  <optgroup key={grupo.categoria} label={grupo.categoria}>
+                    {grupo.productos.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <input value={qtySel} onChange={(e) => setQtySel(e.target.value)} type="number" min="1" placeholder="Cant." style={{ width: 80, padding: "9px 11px", borderRadius: 8, border: "1px solid " + COLORS.borde, fontSize: 13.5 }} />

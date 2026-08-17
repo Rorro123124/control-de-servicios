@@ -30,6 +30,18 @@ function hoyISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function agruparPorCategoria(productos) {
+  const grupos = {};
+  productos.forEach((p) => {
+    const cat = p.category || "Sin categoria";
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push(p);
+  });
+  return Object.keys(grupos)
+    .sort()
+    .map((cat) => ({ categoria: cat, productos: grupos[cat] }));
+}
+
 function formatCOP(n) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n || 0);
 }
@@ -241,8 +253,12 @@ export default function AppointmentsModal({ businessId, sellers, products, onClo
                   <div style={{ display: "flex", gap: 6, marginTop: 8, background: COLORS.fondo, padding: 8, borderRadius: 8 }}>
                     <select value={productoSel} onChange={(e) => setProductoSel(e.target.value)} style={{ flex: 1, padding: "7px 9px", borderRadius: 7, border: "1px solid " + COLORS.borde, fontSize: 12.5 }}>
                       <option value="">Selecciona un producto...</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({formatCOP(p.salePrice)})</option>
+                      {agruparPorCategoria(products).map((grupo) => (
+                        <optgroup key={grupo.categoria} label={grupo.categoria}>
+                          {grupo.productos.map((p) => (
+                            <option key={p.id} value={p.id}>{p.name} ({formatCOP(p.salePrice)})</option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                     <input value={cantidadSel} onChange={(e) => setCantidadSel(e.target.value)} type="number" min="1" placeholder="Cant." style={{ width: 70, padding: "7px 9px", borderRadius: 7, border: "1px solid " + COLORS.borde, fontSize: 12.5 }} />

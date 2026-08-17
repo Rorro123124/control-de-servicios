@@ -107,6 +107,36 @@ function createServer({ inventoryService, askAi }) {
     }
   });
 
+  app.post("/sugerir-categorias", async (req, res) => {
+    const productNames = req.body && req.body.productNames;
+
+    if (!productNames || !Array.isArray(productNames) || productNames.length === 0) {
+      res.status(400).json({ error: "Falta la lista de nombres de productos." });
+      return;
+    }
+
+    try {
+      const prompt =
+        "Tengo esta lista de nombres de productos de una tienda, en este orden:\n" +
+        JSON.stringify(productNames) +
+        "\n\nQuiero que me sugieras una categoria corta (1-2 palabras, en espanol, ej: Verduras, Bebidas, Aseo, Ropa, Snacks, Lacteos, Abarrotes) para cada uno, basandote en el nombre del producto. " +
+        "Responde SOLO con un arreglo JSON de strings, en el MISMO ORDEN que la lista de arriba, un texto de categoria por cada producto. No agregues texto explicativo, ni comillas de markdown, ni nada mas, solo el arreglo JSON.";
+
+      const respuesta = await askAi(prompt);
+      const limpio = respuesta.replace(/```json|```/g, "").trim();
+      const categorias = JSON.parse(limpio);
+
+      if (!Array.isArray(categorias)) {
+        throw new Error("La IA no devolvio un arreglo valido.");
+      }
+
+      res.json({ categories: categorias });
+    } catch (err) {
+      console.error("Error sugiriendo categorias:", err.message || err);
+      res.status(500).json({ error: "No pude sugerir categorias, puedes escribirlas a mano." });
+    }
+  });
+
   return app;
 }
 

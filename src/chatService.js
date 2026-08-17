@@ -20,6 +20,26 @@ export async function interpretarColumnas(headers, sampleRows) {
   return data.mapping;
 }
 
+export async function sugerirCategorias(productNames) {
+  if (!WORKER_URL) {
+    throw new Error("Falta configurar VITE_WORKER_URL en el .env del frontend.");
+  }
+
+  const response = await fetch(WORKER_URL.replace(/\/$/, "") + "/sugerir-categorias", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ productNames }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Error sugiriendo categorias.");
+  }
+
+  return data.categories;
+}
+
 export async function preguntarAlAsistente(businessId, question) {
   if (!WORKER_URL) {
     throw new Error("Falta configurar VITE_WORKER_URL en el .env del frontend.");
