@@ -105,6 +105,7 @@ export async function getProducts(businessId) {
       hasVariants: tieneVariantes,
       variants: variantes,
       linkedProductId: p.linked_product_id || null,
+      soldByWeight: p.sold_by_weight || false,
       salesHistory: (p.sales || []).map((s) => ({ date: s.sale_date, qty: Number(s.qty) })),
     };
   });
@@ -128,6 +129,7 @@ export async function addProduct(businessId, form) {
       photo_url: form.photoUrl || null,
       show_in_catalog: form.showInCatalog !== false,
       has_variants: form.hasVariants || false,
+      sold_by_weight: form.soldByWeight || false,
     })
     .select()
     .single();
@@ -152,6 +154,7 @@ export async function updateProduct(productId, form) {
       photo_url: form.photoUrl || null,
       show_in_catalog: form.showInCatalog !== false,
       has_variants: form.hasVariants || false,
+      sold_by_weight: form.soldByWeight || false,
     })
     .eq("id", productId);
   if (error) throw error;
@@ -163,19 +166,46 @@ export async function deleteProduct(productId) {
 }
 
 // ---------- STOCK COMPARTIDO ENTRE NEGOCIOS ----------
-export async function applyStockDelta(productId, delta) {
-  const { data: product, error } = await supabase.from("products").select("stock, linked_product_id").eq("id", productId).single();
+async function registrarMovimientoKardex(businessId, productId, productName, delta, motivo) {
+  try {
+    await supabase.from("kardex_movements").insert({
+      business_id: businessId,
+      product_id: productId,
+      product_name: productName,
+      qty_delta: delta,
+      motivo: motivo,
+    });
+  } catch (err) {
+    console.error("No se pudo registrar el movimiento de kardex:", err.message);
+  }
+}
+
+export async function applyStockDelta(productId, delta, motivo = "Ajuste") {
+  const { data: product, error } = await supabase.from("products").select("stock, linked_product_id, business_id, name").eq("id", productId).single();
   if (error) throw error;
   const nuevoStock = Math.max(0, Number(product.stock) + delta);
   await supabase.from("products").update({ stock: nuevoStock }).eq("id", productId);
+  await registrarMovimientoKardex(product.business_id, productId, product.name, delta, motivo);
 
   if (product.linked_product_id) {
-    const { data: linked } = await supabase.from("products").select("stock").eq("id", product.linked_product_id).single();
+    const { data: linked } = await supabase.from("products").select("stock, business_id, name").eq("id", product.linked_product_id).single();
     if (linked) {
       const nuevoStockLinked = Math.max(0, Number(linked.stock) + delta);
       await supabase.from("products").update({ stock: nuevoStockLinked }).eq("id", product.linked_product_id);
+      await registrarMovimientoKardex(linked.business_id, product.linked_product_id, linked.name, delta, motivo + " (sincronizado)");
     }
   }
+}
+
+export async function getKardexForProduct(productId) {
+  const { data, error } = await supabase
+    .from("kardex_movements")
+    .select("*")
+    .eq("product_id", productId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  return data;
 }
 
 export async function getLinkableProducts(currentBusinessId) {
@@ -247,7 +277,7 @@ export async function registerSale(productId, qty, date = new Date().toISOString
 
   const { data: product } = await supabase.from("products").select("stock, item_type, has_variants").eq("id", productId).single();
   if (product.item_type === "servicio" || product.has_variants) return;
-  await applyStockDelta(productId, -qty);
+  await applyStockDelta(productId, -qty, "Venta");
 }
 
 export async function reverseSale(productId, qty, date, variantId = null) {
@@ -278,5 +308,5 @@ export async function reverseSale(productId, qty, date, variantId = null) {
 
   const { data: product } = await supabase.from("products").select("stock, item_type, has_variants").eq("id", productId).single();
   if (!product || product.item_type === "servicio" || product.has_variants) return;
-  await applyStockDelta(productId, qty);
+  await applyStockDelta(productId, qty, "Anulacion de venta");
 }

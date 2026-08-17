@@ -43,6 +43,9 @@ import MermasModal from "./MermasModal";
 import { getWasteRecords } from "./wasteService";
 import AppointmentsModal from "./AppointmentsModal";
 import ImportInventoryModal from "./ImportInventoryModal";
+import KardexModal from "./KardexModal";
+import TopupsModal from "./TopupsModal";
+import { getTopups } from "./topupService";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -80,7 +83,7 @@ function agruparPorCategoria(productos) {
     .map((cat) => ({ categoria: cat, productos: grupos[cat] }));
 }
 
-const emptyForm = { name: "", category: "", stock: "", salePrice: "", realCost: "", avgDailyDemand: "", expirationDate: "", supplierId: "", itemType: "producto", barcode: "", photoUrl: "", showInCatalog: true, hasVariants: false };
+const emptyForm = { name: "", category: "", stock: "", salePrice: "", realCost: "", avgDailyDemand: "", expirationDate: "", supplierId: "", itemType: "producto", barcode: "", photoUrl: "", showInCatalog: true, hasVariants: false, soldByWeight: false };
 const emptyVariant = { name: "", stock: "", barcode: "" };
 const emptySupplier = { name: "", phone: "", notes: "" };
 const emptyBusinessProfile = { nit: "", address: "", phone: "", logoUrl: "", instagram: "", thankYouMessage: "", taxRate: "", taxLabel: "", deletePin: "", businessType: "tienda" };
@@ -260,6 +263,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [showMermas, setShowMermas] = useState(false);
   const [showAppointments, setShowAppointments] = useState(false);
   const [showImportInventory, setShowImportInventory] = useState(false);
+  const [kardexProducto, setKardexProducto] = useState(null);
+  const [topups, setTopups] = useState([]);
+  const [showTopups, setShowTopups] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
   const [showPuntos, setShowPuntos] = useState(false);
@@ -305,6 +311,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const customersData = await getCustomers(businessId);
     const ordersData = await getPurchaseOrders(businessId);
     const mermasData = await getWasteRecords(businessId);
+    const topupsData = await getTopups(businessId);
     setProducts(prods);
     setSuppliers(provs);
     setSellers(vends);
@@ -313,6 +320,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     setCustomers(customersData);
     setPurchaseOrders(ordersData);
     setMermas(mermasData);
+    setTopups(topupsData);
     setCargando(false);
   };
 
@@ -436,9 +444,12 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     const totalGastos = gastos
       .filter((g) => g.expense_date.slice(0, 7) === mesActual)
       .reduce((s, g) => s + Number(g.amount), 0);
-    const neta = gananciaBruta - totalGastos;
-    return { ingresos, costo, gananciaBruta, totalGastos, neta };
-  }, [products, gastos]);
+    const gananciaRecargas = topups
+      .filter((t) => t.created_at.slice(0, 7) === mesActual)
+      .reduce((s, t) => s + Number(t.profit), 0);
+    const neta = gananciaBruta + gananciaRecargas - totalGastos;
+    return { ingresos, costo, gananciaBruta, totalGastos, gananciaRecargas, neta };
+  }, [products, gastos, topups]);
 
   const flujoCaja = useMemo(() => {
     const dias = ultimosDias(14);
@@ -495,6 +506,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       photoUrl: p.photoUrl || "",
       showInCatalog: p.showInCatalog !== false,
       hasVariants: p.hasVariants || false,
+      soldByWeight: p.soldByWeight || false,
     });
     setEditingId(p.id);
     setVariantForm(emptyVariant);
@@ -1064,6 +1076,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       { label: "Puntos", run: abrirPuntos },
       { label: "Cotizaciones", run: abrirCotizaciones },
       { label: "Historial de facturas", run: () => setShowHistorial(true) },
+      { label: "Recargas y servicios", run: () => setShowTopups(true) },
       { label: "Conteo fisico", run: abrirConteo },
       { label: "Proveedores", run: () => setShowSuppliers(true) },
       { label: "Ordenes de compra", run: () => setShowPurchaseOrders(true) },
@@ -1227,8 +1240,11 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           <button onClick={abrirCotizaciones} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Cotizaciones
           </button>
-          <button onClick={() => setShowHistorial(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+          <button onClick={() => setShowHistorial(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14 }}>
             Historial de facturas
+          </button>
+          <button onClick={() => setShowTopups(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.texto, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+            Recargas y servicios
           </button>
 
           <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Inventario</div>
@@ -1360,6 +1376,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
               </div>
               <div style={{ fontSize: 13, fontFamily: FONT_MONO, lineHeight: 2 }}>
                 <div>Ganancia bruta: <strong>{formatCOP(gananciaNetaMes.gananciaBruta)}</strong></div>
+                {gananciaNetaMes.gananciaRecargas > 0 && (
+                  <div>+ Recargas/servicios: <strong>{formatCOP(gananciaNetaMes.gananciaRecargas)}</strong></div>
+                )}
                 <div style={{ color: COLORS.urgente }}>Gastos del mes: <strong>{formatCOP(gananciaNetaMes.totalGastos)}</strong></div>
                 <div style={{ color: gananciaNetaMes.neta >= 0 ? COLORS.marcaClaro : COLORS.urgente, fontSize: 16 }}>
                   Ganancia neta: <strong>{formatCOP(gananciaNetaMes.neta)}</strong>
@@ -1474,7 +1493,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
                         <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 999, background: COLORS.bienBg, color: COLORS.marcaClaro }}>Servicio</div>
                       ) : (
                         <>
-                          <div style={{ fontFamily: FONT_MONO, fontSize: 22, fontWeight: 600 }}>{p.stock}<span style={{ fontSize: 11, fontWeight: 400, color: COLORS.textoSuave }}> uds.</span></div>
+                          <div style={{ fontFamily: FONT_MONO, fontSize: 22, fontWeight: 600 }}>{p.stock}<span style={{ fontSize: 11, fontWeight: 400, color: COLORS.textoSuave }}> {p.soldByWeight ? "kg" : "uds."}</span></div>
                           <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: estadoBg, color: estadoColor, marginTop: 3 }}>{ESTADO_TEXTO[a.estado]}</div>
                         </>
                       )}
@@ -1514,8 +1533,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
                       <>
                         <input
                           type="number"
-                          min="1"
-                          placeholder="Vendi..."
+                          min={p.soldByWeight ? "0.01" : "1"}
+                          step={p.soldByWeight ? "0.01" : "1"}
+                          placeholder={p.soldByWeight ? "Kg..." : "Vendi..."}
                           value={ventaTemp[p.id] || ""}
                           onChange={(e) => setVentaTemp((v) => ({ ...v, [p.id]: e.target.value }))}
                           style={{ ...inputStyle, width: 80, padding: "7px 9px" }}
@@ -1527,6 +1547,9 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
                     )}
                     <button onClick={() => setExpandedId(expandedId === p.id ? null : p.id)} style={{ ...btnGhost(), padding: "7px 12px", fontSize: 13 }}>
                       {expandedId === p.id ? "Ocultar" : "Historial"}
+                    </button>
+                    <button onClick={() => setKardexProducto({ id: p.id, name: p.name })} style={{ ...btnGhost(), padding: "7px 12px", fontSize: 13 }}>
+                      Kardex
                     </button>
                     {p.hasVariants && (
                       <button onClick={() => setExpandedVariantsId(expandedVariantsId === p.id ? null : p.id)} style={{ ...btnGhost(), padding: "7px 12px", fontSize: 13 }}>
@@ -1636,6 +1659,13 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
               </label>
             )}
 
+            {form.itemType === "producto" && !form.hasVariants && (
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                <input type="checkbox" checked={form.soldByWeight} onChange={(e) => setForm({ ...form, soldByWeight: e.target.checked })} />
+                Se vende por peso (kg), no por unidades
+              </label>
+            )}
+
             {editingId && (
               <div style={{ border: "1px solid " + COLORS.borde, borderRadius: 10, padding: 10 }}>
                 <label style={{ ...labelStyle, fontSize: 12 }}>Compartir stock con otro negocio</label>
@@ -1704,8 +1734,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
             <div style={{ display: "flex", gap: 8 }}>
               {form.itemType === "producto" && !form.hasVariants && (
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Stock actual</label>
-                  <input required type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} style={{ ...inputStyle, width: "100%", boxSizing: "border-box", marginTop: 4 }} />
+                  <label style={labelStyle}>{form.soldByWeight ? "Stock actual (kg)" : "Stock actual"}</label>
+                  <input required type="number" step={form.soldByWeight ? "0.01" : "1"} value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} style={{ ...inputStyle, width: "100%", boxSizing: "border-box", marginTop: 4 }} />
                 </div>
               )}
               <div style={{ flex: 1 }}>
@@ -2344,6 +2374,21 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           businessId={businessId}
           onClose={() => setShowImportInventory(false)}
           onImported={cargar}
+        />
+      )}
+      {kardexProducto && (
+        <KardexModal
+          productId={kardexProducto.id}
+          productName={kardexProducto.name}
+          onClose={() => setKardexProducto(null)}
+        />
+      )}
+      {showTopups && (
+        <TopupsModal
+          businessId={businessId}
+          topups={topups}
+          onClose={() => setShowTopups(false)}
+          onChange={cargar}
         />
       )}
     </div>

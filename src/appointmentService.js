@@ -80,7 +80,7 @@ export async function addAppointmentItems(appointmentId, businessId, items) {
   if (error) throw error;
 
   for (const it of items) {
-    await applyStockDelta(it.productId, -Number(it.qty));
+    await applyStockDelta(it.productId, -Number(it.qty), "Producto vendido en cita");
   }
 }
 

@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { applyStockDelta } from "./productService";
 
 export async function getPurchaseOrders(businessId) {
   const { data, error } = await supabase
@@ -38,10 +39,7 @@ export async function receivePurchaseOrder(order) {
 
   for (const item of items) {
     if (!item.product_id) continue;
-    const { data: product } = await supabase.from("products").select("stock").eq("id", item.product_id).single();
-    if (!product) continue;
-    const nuevoStock = Number(product.stock) + Number(item.qty);
-    await supabase.from("products").update({ stock: nuevoStock }).eq("id", item.product_id);
+    await applyStockDelta(item.product_id, Number(item.qty), "Orden de compra recibida");
   }
 
   const { error } = await supabase

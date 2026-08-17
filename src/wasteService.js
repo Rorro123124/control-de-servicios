@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { applyStockDelta } from "./productService";
 
 export const MOTIVOS_MERMA = ["Dañado", "Vencido", "Otro"];
 
@@ -36,8 +37,7 @@ export async function addWasteRecord(businessId, form) {
     .single();
   if (error) throw error;
 
-  const nuevoStock = Number(product.stock) - qty;
-  await supabase.from("products").update({ stock: nuevoStock }).eq("id", form.productId);
+  await applyStockDelta(form.productId, -qty, "Merma: " + form.reason);
 
   return data;
 }

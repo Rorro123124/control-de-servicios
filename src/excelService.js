@@ -3,6 +3,7 @@ import { getInvoices } from "./invoiceService";
 import { getCustomers, getDebts } from "./debtService";
 import { getExpenses } from "./expenseService";
 import { getWasteRecords } from "./wasteService";
+import { getTopups } from "./topupService";
 
 const VERDE = "FF154B3E";
 const VERDE_CLARO = "FF1F6F5C";
@@ -99,6 +100,7 @@ export async function exportToExcel(businessId, businessName) {
   const debts = await getDebts(businessId);
   const expenses = await getExpenses(businessId);
   const wasteRecords = await getWasteRecords(businessId);
+  const topups = await getTopups(businessId);
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = businessName || "Control de Servicios";
@@ -475,6 +477,40 @@ export async function exportToExcel(businessId, businessName) {
   });
   pintarFilasAlternas(wsMermas, 2, wsMermas.rowCount, 1, 5);
   wsMermas.views = [{ state: "frozen", ySplit: 1 }];
+
+  // --------- Hoja Recargas ---------
+  const wsTopups = workbook.addWorksheet("Recargas", { properties: { tabColor: { argb: MOSTAZA } } });
+  wsTopups.columns = [
+    { header: "Fecha", key: "fecha", width: 20 },
+    { header: "Operador", key: "operador", width: 16 },
+    { header: "Monto recargado", key: "monto", width: 18 },
+    { header: "Ganancia", key: "ganancia", width: 14 },
+    { header: "Telefono", key: "telefono", width: 16 },
+  ];
+  estiloEncabezadoTabla(wsTopups.getRow(1));
+
+  topups.forEach((t) => {
+    const row = wsTopups.addRow({
+      fecha: new Date(t.created_at).toLocaleString("es-CO"),
+      operador: t.operator,
+      monto: Number(t.amount),
+      ganancia: Number(t.profit),
+      telefono: t.customer_phone || "",
+    });
+    row.getCell(3).numFmt = '"$"#,##0';
+    row.getCell(4).numFmt = '"$"#,##0';
+  });
+  pintarFilasAlternas(wsTopups, 2, wsTopups.rowCount, 1, 5);
+  wsTopups.views = [{ state: "frozen", ySplit: 1 }];
+
+  if (topups.length > 0) {
+    const totalGanancia = topups.reduce((s, t) => s + Number(t.profit), 0);
+    const totalRow = wsTopups.addRow({ operador: "TOTAL GANANCIA", ganancia: totalGanancia });
+    totalRow.eachCell((cell) => {
+      cell.font = { bold: true };
+    });
+    totalRow.getCell(4).numFmt = '"$"#,##0';
+  }
 
   // --------- Descargar ---------
   const buffer = await workbook.xlsx.writeBuffer();
