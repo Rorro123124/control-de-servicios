@@ -8,6 +8,7 @@ const { buildCustomerContext } = require("./contextBuilder");
 
 let latestQrImage = null;
 let connectionStatus = "esperando";
+let activeSock = null;
 
 function getLatestQrImage() {
   return latestQrImage;
@@ -15,6 +16,25 @@ function getLatestQrImage() {
 
 function getConnectionStatus() {
   return connectionStatus;
+}
+
+function formatearNumeroColombiano(telefono) {
+  const soloDigitos = String(telefono || "").replace(/\D/g, "");
+  if (!soloDigitos) return null;
+  if (soloDigitos.startsWith("57") && soloDigitos.length >= 12) return soloDigitos;
+  if (soloDigitos.length === 10) return "57" + soloDigitos;
+  return soloDigitos;
+}
+
+async function sendCustomerMessage(telefono, texto) {
+  if (!activeSock) {
+    throw new Error("El bot de WhatsApp de clientes no esta conectado ahorita.");
+  }
+  const numero = formatearNumeroColombiano(telefono);
+  if (!numero) {
+    throw new Error("Numero de telefono invalido: " + telefono);
+  }
+  await activeSock.sendMessage(numero + "@s.whatsapp.net", { text: texto });
 }
 
 async function startCustomerWhatsappBot(options) {
@@ -53,6 +73,7 @@ async function startCustomerWhatsappBot(options) {
 
     if (connection === "close") {
       connectionStatus = "desconectado";
+      activeSock = null;
       const statusCode =
         lastDisconnect && lastDisconnect.error ? new Boom(lastDisconnect.error).output.statusCode : null;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
@@ -65,6 +86,7 @@ async function startCustomerWhatsappBot(options) {
     } else if (connection === "open") {
       connectionStatus = "conectado";
       latestQrImage = null;
+      activeSock = sock;
       console.log("Bot de WhatsApp para clientes conectado y listo.");
     }
   });
@@ -110,4 +132,4 @@ async function startCustomerWhatsappBot(options) {
   return sock;
 }
 
-module.exports = { startCustomerWhatsappBot, getLatestQrImage, getConnectionStatus };
+module.exports = { startCustomerWhatsappBot, getLatestQrImage, getConnectionStatus, sendCustomerMessage };

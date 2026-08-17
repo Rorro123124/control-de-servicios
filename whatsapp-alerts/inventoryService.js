@@ -99,6 +99,17 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     return data;
   }
 
+  async function getAppointmentsForDate(businessId, date) {
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("appointment_date", date)
+      .in("status", ["pendiente", "confirmada"]);
+    if (error) throw error;
+    return data;
+  }
+
   return {
     getBusinesses,
     getBusinessForChat,
@@ -109,6 +120,7 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     getSuppliersForBusiness,
     getSellersForBusiness,
     getAllInvoicesForBusiness,
+    getAppointmentsForDate,
   };
 }
 

@@ -19,5 +19,6 @@ module.exports = {
   cronSchedule: process.env.CRON_SCHEDULE || "*/30 * * * *",
   reportSchedule: process.env.REPORT_SCHEDULE || "0 21 * * *",
   backupSchedule: process.env.BACKUP_SCHEDULE || "0 6 * * 1",
+  reminderSchedule: process.env.REMINDER_SCHEDULE || "0 18 * * *",
   customerBotBusinessId: process.env.CUSTOMER_BOT_BUSINESS_ID || null,
 };

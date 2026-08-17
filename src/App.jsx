@@ -4,6 +4,7 @@ import { getBusinesses, createBusiness } from "./productService";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
 import Catalog from "./Catalog";
+import BookingPage from "./BookingPage";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -12,9 +13,10 @@ function App() {
   const [cargando, setCargando] = useState(true);
 
   const catalogMatch = window.location.pathname.match(/^\/catalogo\/([a-zA-Z0-9-]+)/);
+  const bookingMatch = window.location.pathname.match(/^\/reservar\/([a-zA-Z0-9-]+)/);
 
   useEffect(() => {
-    if (catalogMatch) return;
+    if (catalogMatch || bookingMatch) return;
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (!data.session) setCargando(false);
@@ -36,11 +38,15 @@ function App() {
   };
 
   useEffect(() => {
-    if (session && !catalogMatch) cargarNegocios();
+    if (session && !catalogMatch && !bookingMatch) cargarNegocios();
   }, [session]);
 
   if (catalogMatch) {
     return <Catalog businessId={catalogMatch[1]} />;
+  }
+
+  if (bookingMatch) {
+    return <BookingPage businessId={bookingMatch[1]} />;
   }
 
   if (cargando) return <p style={{ textAlign: "center", marginTop: 80 }}>Cargando...</p>;

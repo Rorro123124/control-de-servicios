@@ -1,3 +1,10 @@
+process.on("unhandledRejection", (err) => {
+  console.error("Error no atrapado (unhandledRejection), el worker sigue corriendo:", err && err.message ? err.message : err);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Error no atrapado (uncaughtException), el worker sigue corriendo:", err && err.message ? err.message : err);
+});
+
 const cron = require("node-cron");
 const config = require("./config");
 const { createInventoryService } = require("./inventoryService");
@@ -5,7 +12,7 @@ const { buildAlertMessage } = require("./alertEngine");
 const { createWhatsappSender } = require("./whatsappService");
 const { createAiService } = require("./aiService");
 const { startTelegramBot } = require("./telegramBot");
-const { startCustomerWhatsappBot } = require("./whatsappCustomerBot");
+const { startCustomerWhatsappBot, sendCustomerMessage } = require("./whatsappCustomerBot");
 const { createServer } = require("./server");
 const reportService = require("./reportService");
 const { buildBackupJson } = require("./backupService");
@@ -114,32 +121,74 @@ async function main() {
     }
   }
 
+  async function sendAppointmentReminders() {
+    if (!config.customerBotBusinessId) return;
+    try {
+      const business = await inventoryService.getBusinessById(config.customerBotBusinessId);
+      if (!business) return;
+
+      const manana = new Date();
+      manana.setDate(manana.getDate() + 1);
+      const mananaStr = manana.toISOString().slice(0, 10);
+
+      const citas = await inventoryService.getAppointmentsForDate(business.id, mananaStr);
+
+      for (const cita of citas) {
+        if (!cita.customer_phone) continue;
+        try {
+          const mensaje =
+            "Hola " + cita.customer_name + "! Te recordamos tu cita manana en " + business.name +
+            " a las " + cita.appointment_time.slice(0, 5) + " para " + cita.service_name +
+            ". Si necesitas cambiarla, escribenos por aqui.";
+          await sendCustomerMessage(cita.customer_phone, mensaje);
+          console.log("[" + new Date().toLocaleString() + "] Recordatorio enviado a " + cita.customer_name);
+        } catch (err) {
+          console.error("Error enviando recordatorio a " + cita.customer_name + ":", err.message || err);
+        }
+      }
+    } catch (err) {
+      console.error("Error enviando recordatorios de citas:", err.message || err);
+    }
+  }
+
   console.log("Worker de alertas iniciado. Revisando cada: " + config.cronSchedule);
   console.log("Reporte diario programado: " + config.reportSchedule);
   console.log("Backup automatico programado: " + config.backupSchedule);
+  console.log("Recordatorios de citas programados: " + config.reminderSchedule);
   await checkAllBusinesses();
   cron.schedule(config.cronSchedule, checkAllBusinesses);
   cron.schedule(config.reportSchedule, sendDailyReports);
   cron.schedule(config.backupSchedule, sendWeeklyBackups);
+  cron.schedule(config.reminderSchedule, sendAppointmentReminders);
 
-  startTelegramBot({
-    token: config.telegramToken,
-    inventoryService: inventoryService,
-    askAi: askAi,
-    reportService: reportService,
-  });
+  try {
+    startTelegramBot({
+      token: config.telegramToken,
+      inventoryService: inventoryService,
+      askAi: askAi,
+      reportService: reportService,
+    });
+  } catch (err) {
+    console.error("El bot de Telegram no pudo arrancar, pero el resto del worker sigue funcionando:", err.message || err);
+  }
 
   if (config.customerBotBusinessId) {
-    const business = await inventoryService.getBusinessById(config.customerBotBusinessId);
-    if (!business) {
-      console.log("CUSTOMER_BOT_BUSINESS_ID no coincide con ningun negocio, el bot de WhatsApp de clientes no arranca.");
-    } else {
-      startCustomerWhatsappBot({
-        businessId: business.id,
-        businessName: business.name,
-        inventoryService: inventoryService,
-        askAi: askAi,
-      });
+    try {
+      const business = await inventoryService.getBusinessById(config.customerBotBusinessId);
+      if (!business) {
+        console.log("CUSTOMER_BOT_BUSINESS_ID no coincide con ningun negocio, el bot de WhatsApp de clientes no arranca.");
+      } else {
+        startCustomerWhatsappBot({
+          businessId: business.id,
+          businessName: business.name,
+          inventoryService: inventoryService,
+          askAi: askAi,
+        }).catch((err) => {
+          console.error("El bot de WhatsApp de clientes fallo al conectar, pero el resto del worker sigue funcionando:", err.message || err);
+        });
+      }
+    } catch (err) {
+      console.error("Error preparando el bot de WhatsApp de clientes:", err.message || err);
     }
   } else {
     console.log("CUSTOMER_BOT_BUSINESS_ID no configurado, el bot de WhatsApp de clientes no arranca todavia.");

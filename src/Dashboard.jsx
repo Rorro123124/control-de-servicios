@@ -13,6 +13,10 @@ import {
   getSuppliers,
   addSupplier,
   deleteSupplier,
+  getLinkableProducts,
+  linkProducts,
+  unlinkProduct,
+  getLinkedProductInfo,
 } from "./productService";
 import { createInvoice } from "./invoiceService";
 import { generateInvoicePdf } from "./pdfService";
@@ -252,6 +256,10 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [expandedCustomerId, setExpandedCustomerId] = useState(null);
   const [abonoTemp, setAbonoTemp] = useState({});
   const [productVariants, setProductVariants] = useState([]);
+  const [linkableProducts, setLinkableProducts] = useState([]);
+  const [linkedInfo, setLinkedInfo] = useState(null);
+  const [selectedLinkTarget, setSelectedLinkTarget] = useState("");
+  const [vinculando, setVinculando] = useState(false);
   const [variantForm, setVariantForm] = useState(emptyVariant);
   const [expandedVariantsId, setExpandedVariantsId] = useState(null);
   const [variantSaleTemp, setVariantSaleTemp] = useState({});
@@ -482,7 +490,46 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     } else {
       setProductVariants([]);
     }
+    setLinkableProducts(await getLinkableProducts(businessId).catch(() => []));
+    if (p.linkedProductId) {
+      setLinkedInfo(await getLinkedProductInfo(p.linkedProductId).catch(() => null));
+    } else {
+      setLinkedInfo(null);
+    }
+    setSelectedLinkTarget("");
     setShowForm(true);
+  };
+
+  const vincularProducto = async () => {
+    if (!selectedLinkTarget || !editingId) return;
+    setVinculando(true);
+    try {
+      await linkProducts(editingId, selectedLinkTarget);
+      const info = await getLinkedProductInfo(selectedLinkTarget);
+      setLinkedInfo(info);
+      setSelectedLinkTarget("");
+      await cargar();
+    } catch (err) {
+      alert("Hubo un error vinculando el producto: " + err.message);
+    } finally {
+      setVinculando(false);
+    }
+  };
+
+  const desvincularProducto = async () => {
+    if (!editingId) return;
+    const ok = confirm("Desvincular este producto? Cada negocio va a manejar su propio stock por separado desde ahora.");
+    if (!ok) return;
+    setVinculando(true);
+    try {
+      await unlinkProduct(editingId);
+      setLinkedInfo(null);
+      await cargar();
+    } catch (err) {
+      alert("Hubo un error desvinculando el producto: " + err.message);
+    } finally {
+      setVinculando(false);
+    }
   };
 
   const agregarVariante = async () => {
@@ -1571,6 +1618,41 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
               </label>
             )}
 
+            {editingId && (
+              <div style={{ border: "1px solid " + COLORS.borde, borderRadius: 10, padding: 10 }}>
+                <label style={{ ...labelStyle, fontSize: 12 }}>Compartir stock con otro negocio</label>
+                {linkedInfo ? (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+                    <span style={{ fontSize: 13 }}>
+                      Vinculado con <strong>{linkedInfo.name}</strong> ({linkedInfo.businessName})
+                    </span>
+                    <button type="button" onClick={desvincularProducto} disabled={vinculando} style={{ ...btnGhost(), padding: "5px 10px", fontSize: 12 }}>
+                      Desvincular
+                    </button>
+                  </div>
+                ) : linkableProducts.length === 0 ? (
+                  <p style={{ fontSize: 12, color: COLORS.textoSuave, margin: "4px 0" }}>
+                    No tienes productos sin vincular en otros negocios todavia.
+                  </p>
+                ) : (
+                  <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+                    <select value={selectedLinkTarget} onChange={(e) => setSelectedLinkTarget(e.target.value)} style={{ ...inputStyle, flex: 1 }}>
+                      <option value="">Selecciona un producto de otro negocio...</option>
+                      {linkableProducts.map((lp) => (
+                        <option key={lp.id} value={lp.id}>{lp.name} ({lp.businessName})</option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={vincularProducto} disabled={!selectedLinkTarget || vinculando} style={{ ...btnGhost(), padding: "9px 14px", fontSize: 13 }}>
+                      Vincular
+                    </button>
+                  </div>
+                )}
+                <p style={{ fontSize: 11, color: COLORS.textoSuave, margin: "6px 0 0" }}>
+                  Al vincular, el stock se comparte: una venta, merma, o recepcion de orden de compra en cualquiera de los 2 negocios descuenta o suma el mismo stock.
+                </p>
+              </div>
+            )}
+
             {form.hasVariants ? (
               editingId ? (
                 <div style={{ border: "1px solid " + COLORS.borde, borderRadius: 10, padding: 10 }}>
@@ -2226,6 +2308,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       {showAppointments && (
         <AppointmentsModal
           businessId={businessId}
+          sellers={sellers}
+          products={products}
           onClose={() => setShowAppointments(false)}
         />
       )}
