@@ -41,6 +41,7 @@ export async function updateBusinessProfile(id, profile) {
       tax_rate: Number(profile.taxRate) || 0,
       tax_label: profile.taxLabel || "IVA",
       delete_pin: profile.deletePin || null,
+      business_type: profile.businessType || "tienda",
     })
     .eq("id", id);
   if (error) throw error;

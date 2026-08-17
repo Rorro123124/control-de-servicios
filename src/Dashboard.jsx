@@ -37,6 +37,7 @@ import PurchaseOrdersModal from "./PurchaseOrdersModal";
 import { getPurchaseOrders } from "./purchaseOrderService";
 import MermasModal from "./MermasModal";
 import { getWasteRecords } from "./wasteService";
+import AppointmentsModal from "./AppointmentsModal";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -65,7 +66,7 @@ const FONT_MONO = "'IBM Plex Mono', 'Courier New', monospace";
 const emptyForm = { name: "", category: "", stock: "", salePrice: "", realCost: "", avgDailyDemand: "", expirationDate: "", supplierId: "", itemType: "producto", barcode: "", photoUrl: "", showInCatalog: true, hasVariants: false };
 const emptyVariant = { name: "", stock: "", barcode: "" };
 const emptySupplier = { name: "", phone: "", notes: "" };
-const emptyBusinessProfile = { nit: "", address: "", phone: "", logoUrl: "", instagram: "", thankYouMessage: "", taxRate: "", taxLabel: "", deletePin: "" };
+const emptyBusinessProfile = { nit: "", address: "", phone: "", logoUrl: "", instagram: "", thankYouMessage: "", taxRate: "", taxLabel: "", deletePin: "", businessType: "tienda" };
 const emptyBuyer = { name: "", lastname: "", idNumber: "", phone: "", deliveryType: "lugar", address: "", deliveryFee: "", cashierName: "", paymentMethod: "efectivo", paymentCashAmount: "", paymentTransferAmount: "", dueDate: "" };
 const emptyCustomer = { name: "", lastname: "", idNumber: "", phone: "" };
 
@@ -240,6 +241,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
   const [showPurchaseOrders, setShowPurchaseOrders] = useState(false);
   const [mermas, setMermas] = useState([]);
   const [showMermas, setShowMermas] = useState(false);
+  const [showAppointments, setShowAppointments] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [showHistorial, setShowHistorial] = useState(false);
   const [showPuntos, setShowPuntos] = useState(false);
@@ -568,6 +570,7 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       taxRate: currentBusiness.tax_rate || "",
       taxLabel: currentBusiness.tax_label || "",
       deletePin: currentBusiness.delete_pin || "",
+      businessType: currentBusiness.business_type || "tienda",
     });
     getMembers(businessId).then(setMembers);
     setShowBusinessProfile(true);
@@ -990,8 +993,8 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
     }
   };
 
-  const quickSearchActions = useMemo(
-    () => [
+  const quickSearchActions = useMemo(() => {
+    const acciones = [
       { label: "Inicio", run: () => setVistaActiva("inicio") },
       { label: "Inventario", run: () => setVistaActiva("inventario") },
       { label: "Nueva factura", run: abrirFactura },
@@ -1008,9 +1011,12 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
       { label: "Datos negocio", run: abrirPerfilNegocio },
       { label: "Exportar Excel", run: exportarExcel },
       { label: "Respaldo", run: exportarBackup },
-    ],
-    [cashSession]
-  );
+    ];
+    if (currentBusiness.business_type === "peluqueria") {
+      acciones.splice(2, 0, { label: "Citas", run: () => setShowAppointments(true) });
+    }
+    return acciones;
+  }, [cashSession, currentBusiness.business_type]);
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.fondo, fontFamily: FONT_BODY, color: COLORS.texto }}>
@@ -1133,6 +1139,15 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           <button onClick={() => setVistaActiva("inventario")} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: vistaActiva === "inventario" ? COLORS.bienBg : "transparent", color: vistaActiva === "inventario" ? COLORS.marcaClaro : COLORS.texto, fontWeight: vistaActiva === "inventario" ? 700 : 500, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
             Inventario
           </button>
+
+          {currentBusiness.business_type === "peluqueria" && (
+            <>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Agenda</div>
+              <button onClick={() => setShowAppointments(true)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: COLORS.acento, color: "#2B2107", fontWeight: 700, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+                Citas
+              </button>
+            </>
+          )}
 
           <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Ventas</div>
           <button onClick={abrirFactura} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: COLORS.acento, color: "#2B2107", fontWeight: 700, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 2 }}>
@@ -1689,6 +1704,18 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
 
             <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
               <div className="cs-fade-up" style={{ background: COLORS.fondo, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.marcaClaro, textTransform: "uppercase", letterSpacing: "0.04em" }}>Tipo de negocio</div>
+                <label style={labelStyle}>Que tipo de negocio tienes?</label>
+                <select value={businessProfileForm.businessType} onChange={(e) => setBusinessProfileForm({ ...businessProfileForm, businessType: e.target.value })} style={inputStyle}>
+                  <option value="tienda">Tienda / minimercado</option>
+                  <option value="peluqueria">Peluqueria / barberia / spa</option>
+                </select>
+                <p style={{ fontSize: 11, color: COLORS.textoSuave, margin: 0 }}>
+                  Segun lo que elijas, la app habilita modulos distintos (ej: citas para peluquerias).
+                </p>
+              </div>
+
+              <div className="cs-fade-up" style={{ background: COLORS.fondo, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.marcaClaro, textTransform: "uppercase", letterSpacing: "0.04em" }}>Identidad</div>
                 <label style={labelStyle}>NIT</label>
                 <input value={businessProfileForm.nit} onChange={(e) => setBusinessProfileForm({ ...businessProfileForm, nit: e.target.value })} style={inputStyle} />
@@ -2194,6 +2221,12 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           mermas={mermas}
           onClose={() => setShowMermas(false)}
           onChange={cargar}
+        />
+      )}
+      {showAppointments && (
+        <AppointmentsModal
+          businessId={businessId}
+          onClose={() => setShowAppointments(false)}
         />
       )}
     </div>
