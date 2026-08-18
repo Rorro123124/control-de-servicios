@@ -134,8 +134,19 @@ export async function generateInvoicePdf(business, invoice, items) {
   doc.setFont(undefined, "bold");
   doc.text("TOTAL", MARGEN, y);
   doc.text(formatCOP(invoice.total), ANCHO - MARGEN, y, { align: "right" });
-  y += 6;
+  y += 5;
   doc.setFont(undefined, "normal");
+  doc.setFontSize(7);
+  const pmLabels = { efectivo: "Efectivo", nequi: "Nequi", transferencia: "Transferencia", tarjeta: "Tarjeta", fiado: "Fiado/Credito" };
+  const pm = invoice.payment_method || "efectivo";
+  if (pm === "mixto") {
+    doc.text("Efectivo: " + formatCOP(invoice.payment_cash_amount), MARGEN, y);
+    doc.text("Nequi/Transfer: " + formatCOP(invoice.payment_transfer_amount), ANCHO - MARGEN, y, { align: "right" });
+    y += 4;
+  } else {
+    doc.text("Pago: " + (pmLabels[pm] || pm), MARGEN, y);
+    y += 4;
+  }
 
   const tasa = Number(business.tax_rate) || 0;
   if (tasa > 0) {

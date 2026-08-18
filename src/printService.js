@@ -72,6 +72,14 @@ export function printInvoice(business, invoice, items) {
       <div class="fila"><span>Subtotal</span><span>${formatCOP(itemsTotal)}</span></div>
       ${invoice.delivery_fee > 0 ? '<div class="fila"><span>Domicilio</span><span>' + formatCOP(invoice.delivery_fee) + "</span></div>" : ""}
       <div class="fila total"><span>TOTAL</span><span>${formatCOP(invoice.total)}</span></div>
+      ${(() => {
+        const pm = invoice.payment_method || "efectivo";
+        const labels = { efectivo: "Efectivo", nequi: "Nequi", transferencia: "Transferencia", tarjeta: "Tarjeta", fiado: "Fiado/Credito" };
+        if (pm === "mixto") {
+          return `<div class="fila chico"><span>💵 Efectivo</span><span>${formatCOP(invoice.payment_cash_amount)}</span></div><div class="fila chico"><span>📱 Nequi/Transfer</span><span>${formatCOP(invoice.payment_transfer_amount)}</span></div>`;
+        }
+        return `<div class="fila chico"><span>Pago:</span><span>${labels[pm] || pm}</span></div>`;
+      })()}
       ${bloqueImpuesto}
       <p class="gracias">${escapeHtml(business.thank_you_message || "¡Gracias por su compra!")}</p>
       ${business.instagram ? '<p class="redes">Siguenos: @' + escapeHtml(business.instagram.replace("@", "")) + "</p>" : ""}

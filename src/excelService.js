@@ -291,12 +291,20 @@ export async function exportToExcel(businessId, businessName) {
     { header: "Identificacion", key: "id", width: 16 },
     { header: "Telefono", key: "telefono", width: 16 },
     { header: "Entrega", key: "entrega", width: 14 },
+    { header: "Metodo de pago", key: "pago", width: 20 },
     { header: "Total", key: "total", width: 16 },
     { header: "Estado", key: "estado", width: 14 },
   ];
   estiloEncabezadoTabla(wsFacturas.getRow(1));
 
+  const pmLabelsExcel = { efectivo: "Efectivo", nequi: "Nequi", transferencia: "Transferencia", tarjeta: "Tarjeta", fiado: "Fiado/Credito", mixto: "Mixto" };
+
   invoices.forEach((inv) => {
+    const pm = inv.payment_method || "efectivo";
+    let pagoLabel = pmLabelsExcel[pm] || pm;
+    if (pm === "mixto") {
+      pagoLabel = `Mixto (Ef: $${Number(inv.payment_cash_amount || 0).toLocaleString("es-CO")} / Nequi: $${Number(inv.payment_transfer_amount || 0).toLocaleString("es-CO")})`;
+    }
     const row = wsFacturas.addRow({
       numero: inv.invoice_number,
       fecha: new Date(inv.created_at).toLocaleString("es-CO"),
@@ -304,18 +312,19 @@ export async function exportToExcel(businessId, businessName) {
       id: inv.buyer_id || "",
       telefono: inv.buyer_phone || "",
       entrega: inv.delivery_type === "domicilio" ? "Domicilio" : "En el lugar",
+      pago: pagoLabel,
       total: inv.total,
       estado: inv.cancelled_at ? "Anulada" : "Activa",
     });
-    row.getCell(7).numFmt = '"$"#,##0';
-    row.getCell(7).font = { bold: true };
+    row.getCell(8).numFmt = '"$"#,##0';
+    row.getCell(8).font = { bold: true };
     if (inv.cancelled_at) {
-      const estadoCell = row.getCell(8);
+      const estadoCell = row.getCell(9);
       estadoCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ROJO_BG } };
       estadoCell.font = { color: { argb: ROJO }, bold: true };
     }
   });
-  pintarFilasAlternas(wsFacturas, 2, wsFacturas.rowCount, 1, 8);
+  pintarFilasAlternas(wsFacturas, 2, wsFacturas.rowCount, 1, 9);
   wsFacturas.views = [{ state: "frozen", ySplit: 1 }];
 
   // --------- Hoja Detalle facturas ---------

@@ -2009,14 +2009,43 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
               </div>
             )}
 
-            <label style={{ ...labelStyle, marginTop: 4 }}>Metodo de pago</label>
-            <select value={buyerForm.paymentMethod} onChange={(e) => setBuyerForm({ ...buyerForm, paymentMethod: e.target.value })} style={inputStyle}>
-              <option value="efectivo">Efectivo</option>
-              <option value="transferencia">Transferencia</option>
-              <option value="tarjeta">Tarjeta</option>
-              <option value="mixto">Mixto (efectivo + transferencia)</option>
-              <option value="fiado">Fiado (a credito)</option>
-            </select>
+            <label style={{ ...labelStyle, marginTop: 4 }}>Método de pago</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 7 }}>
+              {[
+                { value: "efectivo", icon: "💵", label: "Efectivo" },
+                { value: "nequi", icon: "📱", label: "Nequi" },
+                { value: "transferencia", icon: "🏦", label: "Transferencia" },
+                { value: "tarjeta", icon: "💳", label: "Tarjeta" },
+                { value: "mixto", icon: "⚡", label: "Mixto" },
+                { value: "fiado", icon: "📦", label: "Fiado" },
+              ].map(({ value, icon, label }) => {
+                const activo = buyerForm.paymentMethod === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setBuyerForm({ ...buyerForm, paymentMethod: value, paymentCashAmount: "", paymentTransferAmount: "" })}
+                    style={{
+                      padding: "10px 6px",
+                      borderRadius: 10,
+                      border: activo ? "2px solid " + COLORS.marca : "1.5px solid " + COLORS.borde,
+                      background: activo ? COLORS.marcaClaro : "transparent",
+                      color: activo ? COLORS.marca : COLORS.texto,
+                      fontWeight: activo ? 700 : 500,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontFamily: FONT_BODY,
+                      textAlign: "center",
+                      lineHeight: 1.4,
+                      transition: "all 0.12s",
+                    }}
+                  >
+                    <div style={{ fontSize: 18, marginBottom: 2 }}>{icon}</div>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
 
             {buyerForm.paymentMethod === "fiado" && (
               <div style={{ background: COLORS.atencionBg, borderRadius: 8, padding: 10 }}>
@@ -2026,12 +2055,71 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
               </div>
             )}
 
-            {buyerForm.paymentMethod === "mixto" && (
-              <div style={{ display: "flex", gap: 8 }}>
-                <input placeholder="Parte en efectivo" inputMode="numeric" value={formatMiles(buyerForm.paymentCashAmount)} onChange={(e) => setBuyerForm({ ...buyerForm, paymentCashAmount: soloDigitos(e.target.value) })} style={{ ...inputStyle, flex: 1 }} />
-                <input placeholder="Parte en transferencia" inputMode="numeric" value={formatMiles(buyerForm.paymentTransferAmount)} onChange={(e) => setBuyerForm({ ...buyerForm, paymentTransferAmount: soloDigitos(e.target.value) })} style={{ ...inputStyle, flex: 1 }} />
-              </div>
-            )}
+            {buyerForm.paymentMethod === "mixto" && (() => {
+              const pagado = (Number(buyerForm.paymentCashAmount) || 0) + (Number(buyerForm.paymentTransferAmount) || 0);
+              const falta = invoiceTotal - pagado;
+              const completo = falta === 0;
+              const excede = falta < 0;
+              return (
+                <div style={{ background: COLORS.bienBg, border: "1px solid " + COLORS.borde, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: COLORS.textoSuave }}>Total a cobrar</span>
+                    <span style={{ fontFamily: FONT_MONO, fontWeight: 800, fontSize: 15, color: COLORS.texto }}>{formatCOP(invoiceTotal)}</span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div>
+                      <label style={{ ...labelStyle, display: "block", marginBottom: 4 }}>💵 Efectivo</label>
+                      <input
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={formatMiles(buyerForm.paymentCashAmount)}
+                        onChange={(e) => {
+                          const cash = soloDigitos(e.target.value);
+                          const resto = Math.max(0, invoiceTotal - Number(cash));
+                          setBuyerForm({ ...buyerForm, paymentCashAmount: cash, paymentTransferAmount: String(resto) });
+                        }}
+                        style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ ...labelStyle, display: "block", marginBottom: 4 }}>📱 Nequi / Transferencia</label>
+                      <input
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={formatMiles(buyerForm.paymentTransferAmount)}
+                        onChange={(e) => setBuyerForm({ ...buyerForm, paymentTransferAmount: soloDigitos(e.target.value) })}
+                        style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    background: completo ? "rgba(33,195,128,0.1)" : excede ? COLORS.atencionBg : COLORS.urgenteBg,
+                    border: "1px solid " + (completo ? COLORS.bien : excede ? COLORS.atencion : COLORS.urgente),
+                  }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: completo ? COLORS.bien : excede ? COLORS.atencion : COLORS.urgente }}>
+                      {completo ? "✓ Pago completo" : excede ? `Sobran ${formatCOP(-falta)}` : `Faltan ${formatCOP(falta)}`}
+                    </span>
+                    {!completo && falta > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cash = Number(buyerForm.paymentCashAmount) || 0;
+                          setBuyerForm({ ...buyerForm, paymentTransferAmount: String(Math.max(0, invoiceTotal - cash)) });
+                        }}
+                        style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "none", background: COLORS.marca, cursor: "pointer", color: "#fff", fontWeight: 700, fontFamily: FONT_BODY }}
+                      >
+                        Completar →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             <label style={{ ...labelStyle, marginTop: 4 }}>Tipo de entrega</label>
             <div style={{ display: "flex", gap: 16 }}>

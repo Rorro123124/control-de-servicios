@@ -74,6 +74,13 @@ export default function HistorialFacturasModal({ invoices, onClose, onChange }) 
                     <div style={{ fontSize: 12, color: COLORS.textoSuave }}>
                       {((inv.buyer_name || "") + " " + (inv.buyer_lastname || "")).trim() || "Cliente sin nombre"} · {new Date(inv.created_at).toLocaleString("es-CO")}
                     </div>
+                    {inv.payment_method && (
+                      <div style={{ marginTop: 3 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "1px 7px", borderRadius: 20, background: inv.payment_method === "fiado" ? "#FBE8E5" : inv.payment_method === "mixto" ? "#EBF1FA" : "#EAF7F1", color: inv.payment_method === "fiado" ? COLORS.urgente : inv.payment_method === "mixto" ? "#3E6FAF" : "#2D9B72" }}>
+                          {{ efectivo: "💵 Efectivo", nequi: "📱 Nequi", transferencia: "🏦 Transferencia", tarjeta: "💳 Tarjeta", mixto: "⚡ Mixto", fiado: "📦 Fiado" }[inv.payment_method] || inv.payment_method}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.marcaClaro }}>{formatCOP(inv.total)}</div>
                 </div>
@@ -86,6 +93,12 @@ export default function HistorialFacturasModal({ invoices, onClose, onChange }) 
                         <span>{formatCOP(it.subtotal)}</span>
                       </div>
                     ))}
+                    {inv.payment_method === "mixto" && (
+                      <div style={{ marginTop: 8, padding: "8px 10px", background: "#EBF1FA", borderRadius: 8, fontSize: 12, display: "flex", gap: 16 }}>
+                        <span style={{ color: "#3E6FAF", fontWeight: 600 }}>💵 Efectivo: {formatCOP(inv.payment_cash_amount)}</span>
+                        <span style={{ color: "#3E6FAF", fontWeight: 600 }}>📱 Nequi/Transfer: {formatCOP(inv.payment_transfer_amount)}</span>
+                      </div>
+                    )}
                     {!cancelada && (
                       <button
                         onClick={() => anular(inv)}
