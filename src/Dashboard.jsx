@@ -49,6 +49,9 @@ import { getTopups } from "./topupService";
 import { getInvoices } from "./invoiceService";
 import { getExpenses } from "./expenseService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import KPIDashboard from "./KPIDashboard";
+import TablesModule from "./TablesModule";
+import SupplierDebtsModule from "./SupplierDebtsModule";
 
 const COLORS = {
   urgente: "var(--cs-urgente)",
@@ -1215,6 +1218,23 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
             Inventario
           </button>
 
+          <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Analisis</div>
+          <button onClick={() => setVistaActiva("resumen")} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: vistaActiva === "resumen" ? COLORS.bienBg : "transparent", color: vistaActiva === "resumen" ? COLORS.marcaClaro : COLORS.texto, fontWeight: vistaActiva === "resumen" ? 700 : 500, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 2 }}>
+            Resumen KPIs
+          </button>
+          <button onClick={() => setVistaActiva("deudas")} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: vistaActiva === "deudas" ? COLORS.bienBg : "transparent", color: vistaActiva === "deudas" ? COLORS.marcaClaro : COLORS.texto, fontWeight: vistaActiva === "deudas" ? 700 : 500, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+            Cuentas x Pagar
+          </button>
+
+          {currentBusiness.business_type === "restaurante" && (
+            <>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Salon</div>
+              <button onClick={() => setVistaActiva("mesas")} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 8, border: "none", background: vistaActiva === "mesas" ? COLORS.bienBg : "transparent", color: vistaActiva === "mesas" ? COLORS.marcaClaro : COLORS.texto, fontWeight: vistaActiva === "mesas" ? 700 : 500, cursor: "pointer", fontFamily: FONT_BODY, fontSize: 14, marginBottom: 12 }}>
+                Mesas
+              </button>
+            </>
+          )}
+
           {currentBusiness.business_type === "peluqueria" && (
             <>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textoSuave, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0 8px", marginBottom: 6 }}>Agenda</div>
@@ -1420,6 +1440,18 @@ export default function Dashboard({ businessId, businessName, businesses, onSwit
           </div>
         )}
           </>
+        )}
+
+        {vistaActiva === "resumen" && (
+          <KPIDashboard businessId={businessId} />
+        )}
+
+        {vistaActiva === "mesas" && currentBusiness.business_type === "restaurante" && (
+          <TablesModule businessId={businessId} currentUser={null} />
+        )}
+
+        {vistaActiva === "deudas" && (
+          <SupplierDebtsModule businessId={businessId} />
         )}
 
         {vistaActiva === "inventario" && (
