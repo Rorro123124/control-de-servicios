@@ -8,7 +8,7 @@ Dueño: Rodrigo Correa. Vende soluciones digitales a negocios pequeños en Colom
 - `whatsapp-alerts/` — Worker Node (CommonJS) con service role de Supabase: alertas y reportes por Telegram, chat con IA (Groq), recordatorios de citas. Su bot de clientes usa Baileys (WhatsApp no oficial): no venderlo a clientes, riesgo de bloqueo del número.
 - `whatsapp-alerts/scripts/seed-demo.js` — crea cuenta demo con un minimercado y una barbería de ejemplo (aún no se ha corrido contra la base real).
 - `supabase/auditoria-seguridad.sql` — consultas de solo lectura para revisar RLS y políticas. Pendiente: correrla y escribir las políticas que falten.
-- `portafolio/` — página pública de Rodrigo (servicios, demo interactiva del asistente, planes). `contenido.html` es la fuente; `index.html` se regenera desde ella (comando en `portafolio/README.md`). Se publica en Netlify con base directory `portafolio`.
+- `portafolio/` — página pública de Rodrigo (servicios, demo interactiva del asistente, planes). `contenido.html` es la fuente; `index.html` se regenera desde ella (comando en `portafolio/README.md`). Publicada en https://rodrigocorrea-servicios.netlify.app (Netlify, subida manual de la carpeta `portafolio`).
 
 ## Decisiones tomadas
 

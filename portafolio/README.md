@@ -16,5 +16,5 @@ cd portafolio
 
 1. Entra a https://app.netlify.com/drop (crea cuenta gratis con tu correo).
 2. Arrastra la carpeta `portafolio` a la página.
-3. Netlify te da un link tipo `https://algo.netlify.app`. En *Site settings → Change site name* ponle `rodrigocorrea` para que quede `https://rodrigocorrea.netlify.app`.
+3. Netlify te da un link tipo `https://algo.netlify.app`. En *Site settings → Change site name* ponle `rodrigocorrea` para que quede `https://rodrigocorrea-servicios.netlify.app`.
 4. Opcional: compra un dominio `.com.co` (~$60.000–90.000 al año) y conéctalo en *Domain settings*.
