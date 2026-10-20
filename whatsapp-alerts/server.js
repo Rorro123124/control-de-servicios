@@ -8,11 +8,35 @@ function createServer({ inventoryService, askAi }) {
   app.use(cors());
   app.use(express.json());
 
+  // Solo usuarios con sesion iniciada en el frontend pueden usar los endpoints con IA.
+  async function requireUser(req, res, next) {
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    try {
+      const user = await inventoryService.getUserFromToken(token);
+      if (!user) {
+        res.status(401).json({ error: "Tu sesion vencio. Vuelve a iniciar sesion." });
+        return;
+      }
+      req.user = user;
+      next();
+    } catch (err) {
+      console.error("Error verificando la sesion:", err.message || err);
+      res.status(500).json({ error: "No pude verificar tu sesion." });
+    }
+  }
+
   app.get("/", (req, res) => {
     res.send("Worker de Control de Servicios activo.");
   });
 
   app.get("/qr-clientes", (req, res) => {
+    const adminToken = process.env.ADMIN_TOKEN;
+    if (!adminToken || req.query.token !== adminToken) {
+      res.status(403).send("Acceso denegado. Configura ADMIN_TOKEN en el .env y abre /qr-clientes?token=TU_TOKEN");
+      return;
+    }
+
     const estado = getConnectionStatus();
     const imagen = getLatestQrImage();
 
@@ -46,7 +70,7 @@ function createServer({ inventoryService, askAi }) {
     );
   });
 
-  app.post("/chat", async (req, res) => {
+  app.post("/chat", requireUser, async (req, res) => {
     const businessId = req.body && req.body.businessId;
     const question = req.body && req.body.question;
 
@@ -56,6 +80,12 @@ function createServer({ inventoryService, askAi }) {
     }
 
     try {
+      const permitido = await inventoryService.userCanAccessBusiness(req.user, businessId);
+      if (!permitido) {
+        res.status(403).json({ error: "No tienes acceso a este negocio." });
+        return;
+      }
+
       const products = await inventoryService.getProductsForBusiness(businessId);
       const expenses = await inventoryService.getExpensesForBusiness(businessId);
       const contexto = buildContext(products) + buildFinanceContext(products, expenses);
@@ -75,7 +105,7 @@ function createServer({ inventoryService, askAi }) {
     }
   });
 
-  app.post("/interpretar-columnas", async (req, res) => {
+  app.post("/interpretar-columnas", requireUser, async (req, res) => {
     const headers = req.body && req.body.headers;
     const sampleRows = req.body && req.body.sampleRows;
 
@@ -107,7 +137,7 @@ function createServer({ inventoryService, askAi }) {
     }
   });
 
-  app.post("/sugerir-categorias", async (req, res) => {
+  app.post("/sugerir-categorias", requireUser, async (req, res) => {
     const productNames = req.body && req.body.productNames;
 
     if (!productNames || !Array.isArray(productNames) || productNames.length === 0) {

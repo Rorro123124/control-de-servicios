@@ -19,6 +19,44 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     return data;
   }
 
+  async function getUserFromToken(token) {
+    if (!token) return null;
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data || !data.user) return null;
+    return data.user;
+  }
+
+  // Mismo criterio que getMyRole del frontend: dueno del negocio o miembro invitado (por user_id o por correo).
+  async function userCanAccessBusiness(user, businessId) {
+    const { data: business, error } = await supabase
+      .from("businesses")
+      .select("id, owner_id")
+      .eq("id", businessId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!business) return false;
+    if (business.owner_id === user.id) return true;
+
+    const { data: porId, error: errorId } = await supabase
+      .from("business_members")
+      .select("id")
+      .eq("business_id", businessId)
+      .eq("user_id", user.id)
+      .limit(1);
+    if (errorId) throw errorId;
+    if (porId && porId.length > 0) return true;
+
+    if (!user.email) return false;
+    const { data: porCorreo, error: errorCorreo } = await supabase
+      .from("business_members")
+      .select("id")
+      .eq("business_id", businessId)
+      .eq("email", user.email.toLowerCase())
+      .limit(1);
+    if (errorCorreo) throw errorCorreo;
+    return Boolean(porCorreo && porCorreo.length > 0);
+  }
+
   async function getBusinessById(businessId) {
     const { data, error } = await supabase
       .from("businesses")
@@ -121,6 +159,8 @@ function createInventoryService({ supabaseUrl, serviceRoleKey }) {
     getSellersForBusiness,
     getAllInvoicesForBusiness,
     getAppointmentsForDate,
+    getUserFromToken,
+    userCanAccessBusiness,
   };
 }
 

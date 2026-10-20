@@ -1,4 +1,15 @@
+import { supabase } from "./supabaseClient";
+
 const WORKER_URL = import.meta.env.VITE_WORKER_URL;
+
+// El worker exige la sesion del usuario para no exponer datos de un negocio a cualquiera.
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession();
+  const token = data && data.session ? data.session.access_token : null;
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = "Bearer " + token;
+  return headers;
+}
 
 export async function interpretarColumnas(headers, sampleRows) {
   if (!WORKER_URL) {
@@ -7,7 +18,7 @@ export async function interpretarColumnas(headers, sampleRows) {
 
   const response = await fetch(WORKER_URL.replace(/\/$/, "") + "/interpretar-columnas", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify({ headers, sampleRows }),
   });
 
@@ -27,7 +38,7 @@ export async function sugerirCategorias(productNames) {
 
   const response = await fetch(WORKER_URL.replace(/\/$/, "") + "/sugerir-categorias", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify({ productNames }),
   });
 
@@ -47,7 +58,7 @@ export async function preguntarAlAsistente(businessId, question) {
 
   const response = await fetch(WORKER_URL.replace(/\/$/, "") + "/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify({ businessId, question }),
   });
 
