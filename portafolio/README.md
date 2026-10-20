@@ -3,15 +3,9 @@
 - `contenido.html`: el contenido de la página (es la fuente que se edita).
 - `index.html`: la página completa lista para publicar. Se genera a partir de `contenido.html`.
 
-## Antes de publicar
+## Si cambias algo en `contenido.html`
 
-En `contenido.html`, busca `const CONTACTO` y pon tu número de WhatsApp (10 dígitos):
-
-```js
-const CONTACTO = { whatsapp: "3001234567", ... };
-```
-
-Después regenera `index.html`:
+Regenera `index.html`:
 
 ```bash
 cd portafolio
