@@ -1,0 +1,771 @@
+<title>Rodrigo Correa Soluciones Digitales</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Asistentes de WhatsApp, sistemas de inventario y caja, y páginas web para negocios en Bucaramanga y su área metropolitana.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Onest:wght@400;500;600&display=swap">
+<style>
+/* Layout: single column story; hero with phone mock, services grid, live demo, software mock, process, plans, FAQ, contact band. */
+:root {
+  --bg: #f3f5f1;
+  --surface: #ffffff;
+  --ink: #142019;
+  --muted: #56645c;
+  --line: #d9e0da;
+  --pine: #11463a;
+  --pine-2: #0b3329;
+  --pine-ink: #eef6f1;
+  --pine-muted: #a9c5b9;
+  --amber: #e3901f;
+  --amber-ink: #1f1405;
+  --chat-bg: #e8e3d7;
+  --bubble-in: #ffffff;
+  --bubble-out: #d5efd1;
+  --btn: #0f6b52;
+  --ok: #1d7a43; --warn: #9a5c0a; --bad: #b23a2c;
+  --chip-ok: #dcf1e2; --chip-warn: #fbecd3; --chip-bad: #f7dcd8;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Onest", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1512; --surface: #172019; --ink: #e5eee8; --muted: #9aaca2; --line: #2a3a31;
+    --pine: #0e3b30; --pine-2: #0a2c24; --pine-ink: #e5f2eb; --pine-muted: #8fb3a4;
+    --amber: #f0a443; --amber-ink: #1f1405; --chat-bg: #1b1f1b; --bubble-in: #252d28; --bubble-out: #1f4a35;
+    --btn: #5fd0a6; --ok: #6fd696; --warn: #f0b45a; --bad: #f08a7c;
+    --chip-ok: #1d3a28; --chip-warn: #3d2e16; --chip-bad: #3d1f1b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1512; --surface: #172019; --ink: #e5eee8; --muted: #9aaca2; --line: #2a3a31;
+  --pine: #0e3b30; --pine-2: #0a2c24; --pine-ink: #e5f2eb; --pine-muted: #8fb3a4;
+  --amber: #f0a443; --amber-ink: #1f1405; --chat-bg: #1b1f1b; --bubble-in: #252d28; --bubble-out: #1f4a35;
+  --btn: #5fd0a6; --ok: #6fd696; --warn: #f0b45a; --bad: #f08a7c;
+  --chip-ok: #1d3a28; --chip-warn: #3d2e16; --chip-bad: #3d1f1b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.band { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 64px; }
+.inner { max-width: 1080px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+h3 { font-size: 1.2rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; color: var(--btn); }
+.section-head { display: grid; gap: 10px; max-width: 640px; }
+.section-head p { color: var(--muted); }
+a { color: inherit; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-weight: 600; text-decoration: none; border-radius: 12px; padding: 12px 18px; cursor: pointer; border: 1px solid transparent; }
+.btn-amber { background: var(--amber); color: var(--amber-ink); }
+.btn-line { border-color: currentColor; color: inherit; background: transparent; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+/* Nav + hero */
+.hero { background: var(--pine); color: var(--pine-ink); padding-block: 20px 72px; }
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.mark { width: 36px; height: 36px; border-radius: 10px; background: var(--amber); color: var(--amber-ink); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; }
+.brand b { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; display: block; line-height: 1.1; }
+.brand small { color: var(--pine-muted); font-size: 12px; }
+.nav-links { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.nav-links a { text-decoration: none; color: var(--pine-muted); font-weight: 500; font-size: 14.5px; }
+.nav-links a:hover { color: var(--pine-ink); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 40px; align-items: center; margin-top: 48px; }
+@media (max-width: 820px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } .nav-links a.hide-sm { display: none; } }
+.hero h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; }
+.hero h1 em { font-style: normal; color: var(--amber); }
+.hero .lead { color: var(--pine-muted); font-size: 1.12rem; max-width: 52ch; margin-top: 18px; }
+.hero .ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+.proof { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 30px; color: var(--pine-muted); font-size: 14px; }
+.proof b { display: block; color: var(--pine-ink); font-family: var(--font-display); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.mock { background: var(--chat-bg); border-radius: 26px; padding: 14px 12px; display: grid; gap: 7px; max-width: 360px; justify-self: center; width: 100%; box-shadow: 0 30px 60px rgb(0 0 0 / 0.3); color: var(--ink); }
+.mock .bar { display: flex; align-items: center; gap: 9px; padding: 4px 4px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.mock .bar .av { width: 30px; height: 30px; border-radius: 50%; background: var(--pine); color: var(--pine-ink); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.mock .bar b { font-size: 14px; display: block; line-height: 1.1; }
+.mock .bar small { font-size: 11.5px; color: var(--muted); }
+.b { max-width: 84%; padding: 7px 10px; border-radius: 10px; font-size: 14px; white-space: pre-line; box-shadow: 0 1px 1px rgb(0 0 0 / 0.07); }
+.b.in { background: var(--bubble-in); justify-self: start; border-top-left-radius: 3px; }
+.b.out { background: var(--bubble-out); justify-self: end; border-top-right-radius: 3px; }
+.b.tap { justify-self: start; background: var(--bubble-in); color: var(--btn); font-weight: 600; text-align: center; width: 70%; }
+.b time { display: block; text-align: right; font-size: 10px; color: var(--muted); }
+
+/* Services */
+.services { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.svc { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.svc .ico { font-size: 26px; line-height: 1; }
+.svc p { color: var(--muted); font-size: 15px; }
+.svc ul { margin: 0; padding-left: 18px; color: var(--ink); font-size: 14.5px; display: grid; gap: 3px; }
+.svc .for { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+.svc .from { font-family: var(--font-display); font-weight: 700; font-variant-numeric: tabular-nums; }
+.svc.featured { background: var(--pine); color: var(--pine-ink); border-color: var(--pine); }
+.svc.featured p, .svc.featured .for { color: var(--pine-muted); border-color: rgb(255 255 255 / 0.15); }
+.svc.featured ul { color: var(--pine-ink); }
+
+/* Live demo */
+.demo-band { background: var(--surface); border-block: 1px solid var(--line); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--pine); color: var(--pine-ink); border-color: var(--pine); }
+.demo-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.demo-controls label { display: grid; gap: 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; flex: 1 1 220px; }
+.demo-controls input { font: inherit; font-size: 15px; text-transform: none; letter-spacing: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
+.stage { display: grid; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 780px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.phone { border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--chat-bg); display: flex; flex-direction: column; height: min(620px, 78svh); }
+.phone-head { background: var(--pine); color: var(--pine-ink); display: flex; align-items: center; gap: 10px; padding: 11px 14px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--amber); color: var(--amber-ink); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; flex: none; }
+.phone-head strong { display: block; font-size: 15px; line-height: 1.2; overflow-wrap: anywhere; }
+.phone-head small { color: var(--pine-muted); font-size: 12px; }
+.chat { flex: 1; overflow-y: auto; padding: 14px 10px; display: flex; flex-direction: column; gap: 6px; }
+.msg { max-width: 86%; padding: 7px 10px 6px; border-radius: 10px; white-space: pre-line; overflow-wrap: anywhere; font-size: 14.5px; box-shadow: 0 1px 1px rgb(0 0 0 / 0.08); }
+.msg.bot { background: var(--bubble-in); align-self: flex-start; border-top-left-radius: 3px; }
+.msg.user { background: var(--bubble-out); align-self: flex-end; border-top-right-radius: 3px; }
+.msg time { display: block; text-align: right; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.sys { align-self: center; background: var(--surface); color: var(--muted); font-size: 12px; padding: 4px 10px; border-radius: 8px; text-align: center; max-width: 92%; }
+.choices { align-self: flex-start; display: grid; gap: 4px; width: min(86%, 300px); }
+.choices button { font: inherit; font-size: 14px; font-weight: 600; color: var(--btn); background: var(--bubble-in); border: 0; border-radius: 9px; padding: 8px 10px; cursor: pointer; box-shadow: 0 1px 1px rgb(0 0 0 / 0.08); }
+.choices.list button { text-align: left; display: flex; justify-content: space-between; gap: 8px; }
+.choices.list button span:last-child { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.choices button:disabled { opacity: 0.45; cursor: default; }
+.typing { align-self: flex-start; background: var(--bubble-in); border-radius: 10px; padding: 8px 12px; color: var(--muted); font-size: 13px; }
+.composer { display: flex; gap: 8px; padding: 8px; border-top: 1px solid var(--line); }
+.composer input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 14px; border-radius: 20px; border: 0; background: var(--bubble-in); color: var(--ink); }
+.composer button { font: inherit; font-weight: 600; border: 0; border-radius: 20px; padding: 0 16px; background: var(--btn); color: var(--surface); cursor: pointer; }
+.owner { background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.owner .sub { color: var(--muted); font-size: 14px; }
+.toast { background: var(--chip-warn); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.rows { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.row .when { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13.5px; }
+.row b { display: block; overflow-wrap: anywhere; font-size: 14.5px; }
+.row span.what { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.row.new { border-color: var(--amber); }
+.chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.chip.pend { background: var(--chip-warn); color: var(--warn); }
+.chip.ok { background: var(--chip-ok); color: var(--ok); }
+.chip.bad { background: var(--chip-bad); color: var(--bad); }
+.note { font-size: 13px; color: var(--muted); }
+
+/* Software mock */
+.split { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 36px; align-items: center; }
+@media (max-width: 820px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.checks li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+.checks li b { display: block; }
+.checks li span { color: var(--muted); font-size: 15px; }
+.app { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 20px 44px rgb(0 0 0 / 0.08); }
+.app-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); gap: 10px; flex-wrap: wrap; }
+.app-top b { font-family: var(--font-display); }
+.app-top span { font-size: 12.5px; color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); }
+.kpi { background: var(--surface); padding: 12px 16px; }
+.kpi span { font-size: 12px; color: var(--muted); display: block; }
+.kpi b { font-family: var(--font-display); font-size: clamp(1.05rem, 3vw, 1.4rem); font-variant-numeric: tabular-nums; }
+.kpi small { font-size: 12px; color: var(--ok); font-weight: 600; }
+.app-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1px; background: var(--line); }
+@media (max-width: 520px) { .app-body { grid-template-columns: minmax(0, 1fr); } .kpis { grid-template-columns: minmax(0, 1fr); } }
+.app-col { background: var(--surface); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.app-col h4 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; align-items: center; }
+.li span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.li .n { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+
+/* Process */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; counter-reset: s; }
+.step { border-top: 3px solid var(--pine); padding-top: 14px; display: grid; gap: 6px; }
+.step::before { counter-increment: s; content: "Paso " counter(s); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--btn); font-weight: 600; }
+.step p { color: var(--muted); font-size: 15px; }
+
+/* Plans */
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 14px; align-content: start; }
+.plan.best { border: 2px solid var(--amber); }
+.plan .tagline { color: var(--muted); font-size: 14.5px; }
+.price { font-family: var(--font-display); font-weight: 800; font-size: 2rem; font-variant-numeric: tabular-nums; line-height: 1; }
+.price small { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--muted); }
+.setup { font-size: 14px; color: var(--muted); }
+.plan ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14.5px; }
+.badge { justify-self: start; background: var(--amber); color: var(--amber-ink); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.extra { border: 1px dashed var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 4px; }
+.extra b { font-size: 15px; }
+.extra span { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* FAQ */
+.faq { display: grid; gap: 8px; max-width: 760px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq details p { color: var(--muted); margin-top: 8px; }
+
+/* Contact */
+.contact { background: var(--pine-2); color: var(--pine-ink); }
+.contact .inner { justify-items: start; }
+.contact p { color: var(--pine-muted); max-width: 56ch; }
+.contact-line { font-family: var(--font-display); font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 700; user-select: all; font-variant-numeric: tabular-nums; }
+footer { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px; background: var(--pine-2); color: var(--pine-muted); font-size: 13px; border-top: 1px solid rgb(255 255 255 / 0.08); }
+footer .inner { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: no-preference) { .msg, .choices, .sys { animation: pop 0.18s ease-out; } }
+@keyframes pop { from { transform: translateY(4px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+</style>
+
+<header class="band hero">
+  <div class="inner">
+    <nav class="nav" aria-label="Principal">
+      <a class="brand" href="#inicio" id="inicio">
+        <span class="mark">RC</span>
+        <span><b>Rodrigo Correa</b><small>Soluciones digitales para negocios</small></span>
+      </a>
+      <div class="nav-links">
+        <a class="hide-sm" href="#servicios">Servicios</a>
+        <a class="hide-sm" href="#demo">Pruébalo</a>
+        <a class="hide-sm" href="#planes">Planes</a>
+        <a class="btn btn-amber js-wa" href="#contacto">Escríbeme</a>
+      </div>
+    </nav>
+
+    <div class="hero-grid">
+      <div>
+        <h1>Tu negocio responde, agenda y vende <em>aunque estés ocupado.</em></h1>
+        <p class="lead">Asistentes automáticos de WhatsApp, sistemas de inventario y caja, y páginas web para barberías, veterinarias, consultorios, restaurantes y tiendas de Bucaramanga y su área metropolitana.</p>
+        <div class="ctas">
+          <a class="btn btn-amber" href="#demo">Probar el asistente</a>
+          <a class="btn btn-line js-wa" href="#contacto">Hablar por WhatsApp</a>
+        </div>
+        <div class="proof">
+          <div><b>24/7</b>atención automática</div>
+          <div><b>&lt; 3 s</b>tiempo de respuesta</div>
+          <div><b>1 mes</b>de prueba sin costo</div>
+        </div>
+      </div>
+      <div class="mock" aria-label="Ejemplo de conversación">
+        <div class="bar"><span class="av">B</span><span><b>Barbería El Patrón</b><small>Asistente virtual</small></span></div>
+        <div class="b out">Hola, ¿tienen turno mañana en la tarde?<time>9:42 p. m.</time></div>
+        <div class="b in">¡Hola! 👋 Mañana tengo libre a las 3:00 p. m. y a las 5:30 p. m. ¿Cuál te sirve?<time>9:42 p. m.</time></div>
+        <div class="b out">5:30, corte + barba<time>9:43 p. m.</time></div>
+        <div class="b in">✅ Listo, Camilo. Quedaste agendado mañana a las 5:30 p. m. para corte + barba ($35.000). Te recuerdo 2 horas antes.<time>9:43 p. m.</time></div>
+        <div class="b tap">✅ Confirmar</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="band" id="servicios">
+    <div class="inner">
+      <div class="section-head">
+        <span class="eyebrow">Servicios</span>
+        <h2>Herramientas que trabajan por usted</h2>
+        <p>Cada solución se configura con los precios, horarios y productos reales de su negocio. Usted no tiene que saber de tecnología.</p>
+      </div>
+      <div class="services">
+        <article class="svc featured">
+          <span class="ico" aria-hidden="true">💬</span>
+          <h3>Asistente de WhatsApp</h3>
+          <p>Contesta a sus clientes al instante, de día y de noche.</p>
+          <ul>
+            <li>Precios, horarios y ubicación</li>
+            <li>Agenda y confirma citas</li>
+            <li>Recordatorios automáticos</li>
+            <li>Toma pedidos a domicilio</li>
+          </ul>
+          <p class="for">Barberías, veterinarias, consultorios, spas, restaurantes · <span class="from">desde $250.000</span></p>
+        </article>
+        <article class="svc">
+          <span class="ico" aria-hidden="true">📦</span>
+          <h3>Inventario, caja y fiados</h3>
+          <p>Sepa qué tiene, qué vendió y cuánto ganó, desde el celular.</p>
+          <ul>
+            <li>Alertas de productos por acabarse o vencer</li>
+            <li>Cuadre de caja: efectivo, Nequi, mixto</li>
+            <li>Fiados y cuentas por pagar</li>
+            <li>Escáner de código de barras</li>
+          </ul>
+          <p class="for">Tiendas, minimercados, ferreterías, panaderías · <span class="from">desde $150.000</span></p>
+        </article>
+        <article class="svc">
+          <span class="ico" aria-hidden="true">🌐</span>
+          <h3>Páginas web y menús digitales</h3>
+          <p>Que lo encuentren en Google y le escriban directo.</p>
+          <ul>
+            <li>Página del negocio con botón de WhatsApp</li>
+            <li>Menú o catálogo con fotos y precios</li>
+            <li>Código QR para mesas y vitrinas</li>
+            <li>Reservas en línea</li>
+          </ul>
+          <p class="for">Cualquier negocio · <span class="from">desde $150.000</span></p>
+        </article>
+        <article class="svc">
+          <span class="ico" aria-hidden="true">⚙️</span>
+          <h3>Automatizaciones a la medida</h3>
+          <p>Tareas repetitivas que hoy hace a mano, hechas solas.</p>
+          <ul>
+            <li>Reporte diario de ventas a su celular</li>
+            <li>Pedir reseñas en Google después de cada servicio</li>
+            <li>Importar inventario desde Excel</li>
+            <li>Recordatorios de pago y renovación</li>
+          </ul>
+          <p class="for">Según lo que necesite · <span class="from">cotización sin costo</span></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band demo-band" id="demo">
+    <div class="inner">
+      <div class="section-head">
+        <span class="eyebrow">Pruébalo ahora</span>
+        <h2>Escriba el nombre de su negocio y háblele al asistente</h2>
+        <p>Es una simulación con datos de ejemplo. Pruebe preguntar precios, horarios o agendar. A la derecha se ve lo que le llega al dueño.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Tipo de negocio" id="tabs">
+        <button type="button" role="tab" data-type="barberia" aria-selected="true">💈 Barbería</button>
+        <button type="button" role="tab" data-type="veterinaria" aria-selected="false">🐾 Veterinaria</button>
+        <button type="button" role="tab" data-type="odontologia" aria-selected="false">🦷 Odontología</button>
+        <button type="button" role="tab" data-type="restaurante" aria-selected="false">🍗 Restaurante</button>
+      </div>
+      <form class="demo-controls" id="controls">
+        <label for="biz-name">Nombre de su negocio
+          <input id="biz-name" type="text" maxlength="40" placeholder="Ej: Barbería El Patrón">
+        </label>
+        <button type="button" class="btn btn-amber" id="play">▶ Ver demostración</button>
+        <button type="button" class="btn btn-line" id="reset">Reiniciar</button>
+      </form>
+      <div class="stage">
+        <div class="phone" aria-label="Chat de ejemplo">
+          <div class="phone-head">
+            <div class="avatar" id="avatar">B</div>
+            <div><strong id="head-name">Barbería</strong><small>Asistente virtual · responde al instante</small></div>
+          </div>
+          <div class="chat" id="chat" aria-live="polite"></div>
+          <form class="composer" id="composer">
+            <input id="composer-input" type="text" placeholder="Escriba como si fuera su cliente…" autocomplete="off">
+            <button type="submit">Enviar</button>
+          </form>
+        </div>
+        <aside class="owner">
+          <div>
+            <h3 id="panel-title">Agenda de mañana</h3>
+            <p class="sub" id="panel-sub">Así le llegan las citas al dueño.</p>
+          </div>
+          <div class="toast" id="toast" hidden></div>
+          <div class="rows" id="rows"></div>
+          <p class="note">Datos de ejemplo. En su negocio van sus servicios, precios y horarios reales.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="software">
+    <div class="inner split">
+      <div style="display:grid;gap:22px">
+        <div class="section-head">
+          <span class="eyebrow">Sistema de gestión</span>
+          <h2>Deje el cuaderno: inventario, caja y fiados en el celular</h2>
+        </div>
+        <ul class="checks">
+          <li><span aria-hidden="true">📦</span><div><b>Inventario al día</b><span>Le avisa qué se está acabando o está por vencer, con kardex de entradas y salidas.</span></div></li>
+          <li><span aria-hidden="true">💵</span><div><b>Ventas y cuadre de caja</b><span>Efectivo, Nequi, transferencia o pago mixto. Venta por peso y por código de barras.</span></div></li>
+          <li><span aria-hidden="true">📒</span><div><b>Fiados bajo control</b><span>Quién debe, cuánto, desde cuándo y cuánto ha abonado.</span></div></li>
+          <li><span aria-hidden="true">📊</span><div><b>Cuánto ganó de verdad</b><span>Ventas menos costos y gastos del mes, en números claros.</span></div></li>
+        </ul>
+      </div>
+      <div class="app" aria-label="Vista de ejemplo del sistema">
+        <div class="app-top"><b>Minimercado La Esquina</b><span>Hoy · datos de ejemplo</span></div>
+        <div class="kpis">
+          <div class="kpi"><span>Ventas de hoy</span><b>$486.300</b><small>▲ 12% vs. ayer</small></div>
+          <div class="kpi"><span>Ganancia del mes</span><b>$2.940.000</b><small>después de gastos</small></div>
+          <div class="kpi"><span>Fiados por cobrar</span><b>$75.500</b><small style="color:var(--warn)">3 clientes</small></div>
+        </div>
+        <div class="app-body">
+          <div class="app-col">
+            <h4>Por acabarse</h4>
+            <div class="li"><span>Papel higiénico x 4</span><span class="chip bad">2 uds</span></div>
+            <div class="li"><span>Queso campesino</span><span class="chip bad">3 uds</span></div>
+            <div class="li"><span>Café Sello Rojo</span><span class="chip pend">4 uds</span></div>
+            <div class="li"><span>Huevos AA x 30</span><span class="chip pend">6 uds</span></div>
+          </div>
+          <div class="app-col">
+            <h4>Fiados</h4>
+            <div class="li"><span>Doña Marta</span><span class="n">$48.500</span></div>
+            <div class="li"><span>Luisa Gómez</span><span class="n">$15.000</span></div>
+            <div class="li"><span>Don Jairo <small style="color:var(--bad)">· vencido</small></span><span class="n">$12.000</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" style="padding-block-start:0">
+    <div class="inner">
+      <div class="section-head">
+        <span class="eyebrow">Cómo trabajo</span>
+        <h2>De la primera conversación a funcionando en dos semanas</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Conversamos 15 minutos</h3><p>En su local o por WhatsApp. Me cuenta qué le quita tiempo y qué preguntan sus clientes.</p></div>
+        <div class="step"><h3>Lo configuro con sus datos</h3><p>Precios, horarios, servicios y productos reales. Usted revisa y aprueba cada respuesta.</p></div>
+        <div class="step"><h3>Lo usa un mes sin costo</h3><p>Si no le sirve, no paga nada. Si le sirve, sigue con el plan que elija.</p></div>
+        <div class="step"><h3>Soporte por WhatsApp</h3><p>Cambios de precios, horarios o servicios incluidos en la mensualidad.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band demo-band" id="planes">
+    <div class="inner">
+      <div class="section-head">
+        <span class="eyebrow">Planes</span>
+        <h2>Precios claros, mes a mes</h2>
+        <p>Sin contratos de permanencia. Los mensajes de WhatsApp y el servidor están incluidos en la mensualidad.</p>
+      </div>
+      <div class="plans">
+        <article class="plan">
+          <h3>Responde</h3>
+          <p class="tagline">Para que ningún cliente se quede sin respuesta.</p>
+          <div><div class="price">$60.000 <small>/ mes</small></div><div class="setup">Instalación $250.000</div></div>
+          <ul>
+            <li>Preguntas frecuentes: precios, horarios, ubicación</li>
+            <li>Menú de opciones con botones</li>
+            <li>Pasa la conversación a usted cuando hace falta</li>
+            <li>Hasta 300 conversaciones al mes</li>
+          </ul>
+        </article>
+        <article class="plan best">
+          <span class="badge">Más elegido</span>
+          <h3>Agenda</h3>
+          <p class="tagline">Citas que se agendan y se confirman solas.</p>
+          <div><div class="price">$100.000 <small>/ mes</small></div><div class="setup">Instalación $400.000</div></div>
+          <ul>
+            <li>Todo lo del plan Responde</li>
+            <li>Agenda de citas o pedidos a domicilio</li>
+            <li>Recordatorio y confirmación automáticos</li>
+            <li>Panel con la agenda del día</li>
+            <li>Hasta 800 conversaciones al mes</li>
+          </ul>
+        </article>
+        <article class="plan">
+          <h3>Completo</h3>
+          <p class="tagline">Asistente más sistema de gestión del negocio.</p>
+          <div><div class="price">$150.000 <small>/ mes</small></div><div class="setup">Instalación $600.000</div></div>
+          <ul>
+            <li>Todo lo del plan Agenda</li>
+            <li>Inventario, caja y fiados</li>
+            <li>Mensaje para pedir reseñas en Google</li>
+            <li>Reporte diario de ventas y citas</li>
+            <li>Hasta 1.500 conversaciones al mes</li>
+          </ul>
+        </article>
+      </div>
+      <div class="extras">
+        <div class="extra"><b>Sistema de inventario y caja</b><span>Instalación $150.000 – $250.000 · $50.000 / mes</span></div>
+        <div class="extra"><b>Página web del negocio</b><span>Desde $350.000 · dominio y hosting $90.000 / año</span></div>
+        <div class="extra"><b>Menú o catálogo digital con QR</b><span>Desde $150.000 · $25.000 / mes</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="inner">
+      <div class="section-head">
+        <span class="eyebrow">Preguntas frecuentes</span>
+        <h2>Lo que más me preguntan</h2>
+      </div>
+      <div class="faq">
+        <details><summary>¿Es la aplicación oficial de WhatsApp?</summary><p>Sí. El asistente usa la plataforma oficial de WhatsApp Business de Meta, la misma que usan bancos y aerolíneas. Así su número no corre riesgo de bloqueo.</p></details>
+        <details><summary>¿Puedo seguir contestando yo cuando quiera?</summary><p>Sí. Usted ve todas las conversaciones y puede responder personalmente. El asistente le pasa la conversación cuando el cliente pregunta algo que no está en su configuración. Revisamos juntos si conviene usar su número actual o uno dedicado al asistente.</p></details>
+        <details><summary>¿Tengo que saber de tecnología?</summary><p>No. Yo hago la configuración y los cambios. Usted solo me dice por WhatsApp qué precio, horario o servicio cambió.</p></details>
+        <details><summary>¿Qué pasa después del mes de prueba?</summary><p>Si le sirvió, sigue con el plan que elija y paga la instalación y la mensualidad. Si no, lo desactivamos sin costo y sin compromiso.</p></details>
+        <details><summary>¿Cómo se paga?</summary><p>Por Nequi o transferencia. La mensualidad se paga mes a mes, sin permanencia.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="band contact" id="contacto">
+    <div class="inner">
+      <span class="eyebrow" style="color:var(--amber)">Contacto</span>
+      <h2>¿Le muestro cómo funcionaría en su negocio?</h2>
+      <p>Escríbame por WhatsApp. Le respondo el mismo día y, si queda cerca, paso a mostrárselo en persona.</p>
+      <div class="contact-line" id="contact-line"></div>
+      <a class="btn btn-amber js-wa" id="contact-btn" href="#contacto">Escribir por WhatsApp</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="inner">
+    <span>Rodrigo Correa · Soluciones digitales para negocios</span>
+    <span>Bucaramanga, Floridablanca, Girón y Piedecuesta</span>
+  </div>
+</footer>
+
+<script>
+// Pon aquí tu número (10 dígitos) para activar los botones de WhatsApp.
+const CONTACTO = { whatsapp: "", saludo: "Hola Rodrigo, vi tu página y quiero saber más sobre tus servicios." };
+
+(function setupContact() {
+  const d = CONTACTO.whatsapp.replace(/\D/g, "");
+  const line = document.getElementById("contact-line");
+  if (d.length === 10) {
+    const href = "https://wa.me/57" + d + "?text=" + encodeURIComponent(CONTACTO.saludo);
+    document.querySelectorAll(".js-wa").forEach((a) => { a.href = href; a.target = "_blank"; a.rel = "noopener"; });
+    line.textContent = "WhatsApp " + d.slice(0, 3) + " " + d.slice(3, 6) + " " + d.slice(6);
+  } else {
+    line.textContent = "WhatsApp: número por configurar";
+  }
+})();
+
+const T = {
+  barberia: {
+    defName: "Barbería El Patrón", kind: "citas", icon: "💈",
+    address: "Cra 35 #48-20, Cabecera del Llano, Bucaramanga",
+    hours: "Lun a sáb: 9:00 a. m. – 8:00 p. m.\nDomingo: 9:00 a. m. – 2:00 p. m.",
+    services: [["Corte clásico", 25000], ["Corte + barba", 35000], ["Arreglo de barba", 15000], ["Cejas", 8000]],
+    askName: "¿A nombre de quién agendo la cita? ✍️",
+    sample: [["9:00 a. m.", "Julián R.", "Corte + barba", "ok"], ["4:00 p. m.", "Sebastián M.", "Corte clásico", "pend"]],
+    auto: ["Hola, ¿cuánto vale el corte?", 0, 0, 0, 1, "Camilo", 0, 0],
+  },
+  veterinaria: {
+    defName: "Veterinaria Patitas", kind: "citas", icon: "🐾",
+    address: "Calle 52 #36-15, Cabecera del Llano, Bucaramanga",
+    hours: "Lun a sáb: 8:00 a. m. – 7:00 p. m.\nUrgencias: llame al número del local",
+    services: [["Consulta general", 50000], ["Vacunación", 45000], ["Baño y peluquería", 40000], ["Desparasitación", 30000]],
+    askName: "¿Cómo se llama su mascota y cuál es su nombre? 🐶🐱",
+    sample: [["8:30 a. m.", "Luna (Laura P.)", "Vacunación", "ok"], ["3:00 p. m.", "Max (Diego A.)", "Baño y peluquería", "pend"]],
+    auto: ["Buenas, ¿qué vale la vacuna?", 0, 1, 0, 0, "Rocky, de Valentina", 0, 0],
+  },
+  odontologia: {
+    defName: "Consultorio Sonrisa Dental", kind: "citas", icon: "🦷",
+    address: "Cra 34 #51-40, consultorio 302, Cabecera del Llano",
+    hours: "Lun a vie: 8:00 a. m. – 6:00 p. m.\nSábado: 8:00 a. m. – 12:00 m.",
+    services: [["Valoración", 40000], ["Limpieza", 90000], ["Resina", 120000], ["Control de ortodoncia", 80000]],
+    askName: "¿A nombre de quién agendo la cita? (nombre completo) ✍️",
+    sample: [["9:00 a. m.", "Mariana G.", "Limpieza", "ok"], ["2:30 p. m.", "Carlos T.", "Control de ortodoncia", "pend"]],
+    auto: ["Hola, quisiera saber precios", 0, 0, 0, 2, "Andrea Rueda", 0, 0],
+  },
+  restaurante: {
+    defName: "Asadero El Fogón", kind: "pedidos", icon: "🍗",
+    address: "Calle 9 #6-40, Centro, Piedecuesta",
+    hours: "Todos los días: 11:00 a. m. – 10:00 p. m.\nDomicilios hasta las 9:30 p. m.",
+    menu: [["Pollo asado entero", 38000], ["Medio pollo", 21000], ["Hamburguesa doble", 18000], ["Picada para 2", 35000], ["Gaseosa 1.5 L", 6000]],
+    delivery: 3000, eta: "35 a 45 minutos",
+    sample: [["7:05 p. m.", "Pedido #118 · Cra 4 #8-21", "Medio pollo + gaseosa", "ok"], ["7:12 p. m.", "Pedido #119 · Brisas del Campo", "Picada para 2", "pend"]],
+    auto: ["Hola, ¿tienen domicilio?", 1, 0, 4, 1, "Calle 3 #5-12, barrio La Cantera", 0, 0],
+  },
+};
+
+const $ = (id) => document.getElementById(id);
+const chat = $("chat"), rows = $("rows");
+const money = (n) => "$" + n.toLocaleString("es-CO");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let type = "barberia", cfg, bizName, state, ownerRows, runId = 0, busy = false;
+
+function clock() { return new Date().toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" }); }
+function days() {
+  const out = [];
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    const name = d.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "short" });
+    out.push(i === 1 ? "Mañana, " + name : name.charAt(0).toUpperCase() + name.slice(1));
+  }
+  return out;
+}
+const SLOTS = ["10:00 a. m.", "11:30 a. m.", "3:00 p. m.", "5:30 p. m."];
+function scroll() { chat.scrollTop = chat.scrollHeight; }
+function disableOld() { chat.querySelectorAll(".choices button").forEach((b) => (b.disabled = true)); }
+
+function addUser(text) {
+  disableOld();
+  const el = document.createElement("div"); el.className = "msg user"; el.textContent = text;
+  const t = document.createElement("time"); t.textContent = clock() + " ✓✓"; el.appendChild(t);
+  chat.appendChild(el); scroll();
+}
+function addSys(text) { const el = document.createElement("div"); el.className = "sys"; el.textContent = text; chat.appendChild(el); scroll(); }
+async function bot(text, options, list) {
+  const my = runId;
+  const typing = document.createElement("div"); typing.className = "typing"; typing.textContent = "escribiendo…";
+  chat.appendChild(typing); scroll();
+  await sleep(550 + Math.min(text.length * 6, 700));
+  typing.remove();
+  if (my !== runId) return;
+  const el = document.createElement("div"); el.className = "msg bot"; el.textContent = text;
+  const t = document.createElement("time"); t.textContent = clock(); el.appendChild(t);
+  chat.appendChild(el);
+  if (options && options.length) {
+    const box = document.createElement("div"); box.className = "choices" + (list ? " list" : "");
+    options.forEach((o, i) => {
+      const b = document.createElement("button"); b.type = "button";
+      const label = Array.isArray(o) ? o[0] : o;
+      if (Array.isArray(o)) {
+        const a = document.createElement("span"); a.textContent = o[0];
+        const p = document.createElement("span"); p.textContent = o[1];
+        b.append(a, p);
+      } else b.textContent = o;
+      b.addEventListener("click", () => choose(i, label));
+      box.appendChild(b);
+    });
+    chat.appendChild(box);
+  }
+  scroll();
+}
+function menuButtons() {
+  return cfg.kind === "pedidos" ? ["🍗 Ver menú y pedir", "💲 Precios", "📍 Horario y ubicación"]
+                                : [cfg.icon + " Agendar cita", "💲 Precios", "📍 Horario y ubicación"];
+}
+async function mainMenu(text) { state = { step: "menu" }; await bot(text || "¿En qué más le puedo ayudar?", menuButtons()); }
+function priceText() {
+  const items = cfg.kind === "pedidos" ? cfg.menu : cfg.services;
+  return "Estos son nuestros precios 👇\n\n" + items.map(([n, p]) => "• " + n + ": " + money(p)).join("\n") +
+    (cfg.kind === "pedidos" ? "\n\nDomicilio: " + money(cfg.delivery) : "");
+}
+async function choose(i, label) {
+  if (busy) return;
+  busy = true; addUser(label);
+  try { await handleChoice(i); } finally { busy = false; }
+}
+async function handleChoice(i) {
+  const s = state;
+  if (s.step === "menu") {
+    if (i === 0) return cfg.kind === "pedidos" ? showMenu() : askService();
+    if (i === 1) { await bot(priceText()); return mainMenu(); }
+    await bot("📍 " + cfg.address + "\n\n🕒 " + cfg.hours); return mainMenu();
+  }
+  if (s.step === "service") {
+    state = { step: "day", service: cfg.services[i] };
+    return bot("Perfecto: " + cfg.services[i][0] + " (" + money(cfg.services[i][1]) + ").\n¿Qué día le queda bien? 📅", days());
+  }
+  if (s.step === "day") { state = { ...s, step: "slot", day: days()[i] }; return bot("Horarios disponibles para " + state.day.toLowerCase() + " ⏰", SLOTS); }
+  if (s.step === "slot") { state = { ...s, step: "name", slot: SLOTS[i] }; return bot(cfg.askName); }
+  if (s.step === "confirm") { if (i === 0) return finishBooking(); return mainMenu("Listo, cancelé esa solicitud. ¿Le ayudo con algo más?"); }
+  if (s.step === "reminder") {
+    const row = ownerRows[ownerRows.length - 1];
+    if (i === 0) { row[3] = "ok"; renderRows(); toast("✅ " + row[1] + " confirmó su cita de las " + row[0]); return bot("¡Gracias! Lo esperamos 🙌"); }
+    if (i === 1) { state = { step: "day", service: s.service }; return bot("Sin problema. ¿Para qué día la movemos? 📅", days()); }
+    row[3] = "bad"; renderRows(); toast("❌ " + row[1] + " canceló. El espacio de las " + row[0] + " quedó libre.");
+    return bot("Listo, cancelé su cita. Cuando quiera agendar otra, escríbame 👋");
+  }
+  if (s.step === "menuPick") {
+    const item = cfg.menu[i]; s.cart.push(item);
+    const total = s.cart.reduce((a, it) => a + it[1], 0);
+    state = { ...s, step: "more" };
+    return bot("Agregué 1 × " + item[0] + " ✅\nSubtotal: " + money(total), ["➕ Agregar algo más", "🛵 Finalizar pedido"]);
+  }
+  if (s.step === "more") {
+    if (i === 0) { state = { ...s, step: "menuPick" }; return bot("¿Qué más le agrego?", cfg.menu.map(([n, p]) => [n, money(p)]), true); }
+    state = { ...s, step: "address" }; return bot("¿A qué dirección se lo enviamos? 🏠 (barrio y referencia)");
+  }
+  if (s.step === "pay") return finishOrder(i === 0 ? "Nequi" : "Efectivo");
+  if (s.step === "done") return mainMenu();
+}
+async function askService() { state = { step: "service" }; await bot("¡Con gusto! ¿Qué servicio desea? " + cfg.icon, cfg.services.map(([n, p]) => [n, money(p)]), true); }
+async function showMenu() { state = { step: "menuPick", cart: [] }; await bot("🍽️ Este es nuestro menú de hoy. Toque lo que quiera pedir:", cfg.menu.map(([n, p]) => [n, money(p)]), true); }
+async function finishBooking() {
+  const s = state;
+  ownerRows.push([s.slot, s.name, s.service[0], "pend", true]); renderRows();
+  toast("🔔 Nueva cita: " + s.name + " · " + s.service[0] + " · " + s.day + ", " + s.slot);
+  await bot("✅ ¡Cita agendada!\n\n" + cfg.icon + " " + s.service[0] + "\n📅 " + s.day + "\n⏰ " + s.slot + "\n📍 " + cfg.address + "\n\nLe mando un recordatorio antes de la cita.");
+  await sleep(900);
+  addSys("⏰ Al día siguiente, 2 horas antes · recordatorio automático");
+  state = { step: "reminder", service: s.service };
+  await bot("Hola " + s.name.split(/[ ,]/)[0] + " 👋 Le recuerdo su cita de hoy a las " + s.slot + " en " + bizName + " (" + s.service[0] + "). ¿Nos confirma?", ["✅ Confirmo", "🔁 Reprogramar", "❌ Cancelar"]);
+}
+async function finishOrder(pay) {
+  const s = state;
+  const total = s.cart.reduce((a, it) => a + it[1], 0) + cfg.delivery;
+  const counts = {}; s.cart.forEach(([n]) => (counts[n] = (counts[n] || 0) + 1));
+  const lines = Object.entries(counts).map(([n, c]) => c + " × " + n);
+  const num = 120 + ownerRows.length;
+  ownerRows.push([clock(), "Pedido #" + num + " · " + s.address, lines.join(", ") + " · " + pay, "pend", true]); renderRows();
+  toast("🔔 Pedido nuevo #" + num + ": " + money(total) + " · " + pay);
+  await bot("✅ ¡Pedido recibido! #" + num + "\n\n" + lines.join("\n") + "\nDomicilio: " + money(cfg.delivery) + "\nTotal: " + money(total) +
+    "\nPago: " + pay + (pay === "Nequi" ? " (le enviamos el número para el pago)" : "") + "\n\n🛵 Llega en " + cfg.eta + ".");
+  await sleep(900);
+  addSys("🛵 Cuando sale el domiciliario · aviso automático");
+  ownerRows[ownerRows.length - 1][3] = "ok"; renderRows();
+  state = { step: "done" };
+  await bot("Su pedido #" + num + " ya va en camino 🛵💨 ¡Buen provecho!", ["👍 Gracias"]);
+}
+async function handleText(text) {
+  if (busy) return;
+  busy = true; addUser(text);
+  try {
+    const s = state, t = text.toLowerCase();
+    if (s.step === "name") {
+      state = { ...s, step: "confirm", name: text.trim() };
+      return await bot("¿Confirmo esta cita?\n\n👤 " + state.name + "\n" + cfg.icon + " " + s.service[0] + "\n📅 " + s.day + "\n⏰ " + s.slot, ["✅ Sí, confirmar", "✖️ No, cancelar"]);
+    }
+    if (s.step === "address") { state = { ...s, step: "pay", address: text.trim() }; return await bot("¿Cómo va a pagar? 💳", ["Nequi", "Efectivo"]); }
+    if (/precio|cu[aá]nto|vale|cuesta|tarifa/.test(t)) { await bot(priceText()); return await mainMenu(); }
+    if (/hora|abren|cierran|ubica|direcci|d[oó]nde|queda/.test(t)) { await bot("📍 " + cfg.address + "\n\n🕒 " + cfg.hours); return await mainMenu(); }
+    if (cfg.kind === "citas" && /cita|agend|turno|reserv|espacio/.test(t)) return await askService();
+    if (cfg.kind === "pedidos" && /pedi|men[uú]|domicilio|carta|pollo|hambur/.test(t)) { await bot("¡Claro que sí! Hacemos domicilios 🛵"); return await showMenu(); }
+    if (/hola|buen|qu[eé] tal|saludos/.test(t)) return await mainMenu("¡Hola! 👋 Soy el asistente virtual de " + bizName + ". ¿En qué le ayudo?");
+    await bot("Esa pregunta se la paso a una persona del equipo y le responde en un momento 🙌\nMientras tanto, le puedo ayudar con esto:");
+    return await mainMenu(" ");
+  } finally { busy = false; }
+}
+function renderRows() {
+  rows.replaceChildren();
+  const map = cfg.kind === "pedidos" ? { pend: ["pend", "En cocina"], ok: ["ok", "Despachado"], bad: ["bad", "Cancelado"] }
+                                     : { pend: ["pend", "Por confirmar"], ok: ["ok", "Confirmada"], bad: ["bad", "Cancelada"] };
+  ownerRows.forEach(([when, who, what, st, isNew]) => {
+    const r = document.createElement("div"); r.className = "row" + (isNew ? " new" : "");
+    const a = document.createElement("div"); a.className = "when"; a.textContent = when;
+    const b = document.createElement("div");
+    const bn = document.createElement("b"); bn.textContent = who;
+    const bs = document.createElement("span"); bs.className = "what"; bs.textContent = what + (isNew ? "" : " · ejemplo");
+    b.append(bn, bs);
+    const c = document.createElement("span"); c.className = "chip " + map[st][0]; c.textContent = map[st][1];
+    r.append(a, b, c); rows.appendChild(r);
+  });
+}
+function toast(text) { const el = $("toast"); el.textContent = text; el.hidden = false; }
+async function start() {
+  runId++; busy = false;
+  cfg = T[type];
+  bizName = $("biz-name").value.trim() || cfg.defName;
+  $("head-name").textContent = bizName;
+  $("avatar").textContent = bizName.replace(/^(barber[ií]a|veterinaria|consultorio|asadero|restaurante)\s+/i, "").charAt(0).toUpperCase() || "N";
+  const pedidos = cfg.kind === "pedidos";
+  $("panel-title").textContent = pedidos ? "Pedidos de esta noche" : "Agenda de mañana";
+  $("panel-sub").textContent = pedidos ? "Así le llegan los domicilios a la cocina, con total, dirección y forma de pago." : "Así le llegan las citas al dueño, sin contestar el celular.";
+  ownerRows = cfg.sample.map((r) => [...r]); renderRows();
+  $("toast").hidden = true;
+  chat.replaceChildren(); addSys("Hoy");
+  state = { step: "idle" };
+  await bot("¡Hola! 👋 Soy el asistente virtual de " + bizName + ". ¿En qué le ayudo?", menuButtons());
+  state = { step: "menu" };
+}
+async function autoplay() {
+  await start();
+  const my = runId;
+  for (const step of cfg.auto) {
+    await sleep(1100);
+    while (busy) await sleep(100);
+    if (my !== runId) return;
+    if (typeof step === "string") {
+      const inp = $("composer-input");
+      for (const ch of step) { inp.value += ch; await sleep(28); if (my !== runId) return; }
+      inp.value = ""; await handleText(step);
+    } else {
+      const boxes = chat.querySelectorAll(".choices");
+      const btns = boxes.length ? boxes[boxes.length - 1].querySelectorAll("button") : [];
+      if (btns[step] && !btns[step].disabled) btns[step].click();
+      await sleep(50);
+      while (busy) await sleep(100);
+    }
+  }
+}
+$("composer").addEventListener("submit", (e) => { e.preventDefault(); const v = $("composer-input").value.trim(); if (!v) return; $("composer-input").value = ""; handleText(v); });
+$("controls").addEventListener("submit", (e) => e.preventDefault());
+$("biz-name").addEventListener("change", start);
+$("reset").addEventListener("click", start);
+$("play").addEventListener("click", autoplay);
+document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => {
+  type = b.dataset.type;
+  document.querySelectorAll("#tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  $("biz-name").value = ""; $("biz-name").placeholder = "Ej: " + T[type].defName;
+  start();
+}));
+start();
+</script>
